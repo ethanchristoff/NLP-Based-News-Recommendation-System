@@ -7,11 +7,10 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
 
-
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.news_app_controller">
    <children>
       <TextArea fx:id="text_output_area" editable="false" layoutX="267.0" layoutY="89.0" prefHeight="234.0" prefWidth="302.0" />
-      <Button layoutX="92.0" layoutY="187.0" mnemonicParsing="false" onAction="#say_hello" text="Say Hello!" />
+      <Button layoutX="103.0" layoutY="187.0" mnemonicParsing="false" onAction="#print_user_details" text="Say Hello!" />
       <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="600.0">
          <menus>
             <Menu mnemonicParsing="false" text="Exit">
@@ -21,5 +20,6 @@
             </Menu>
          </menus>
       </MenuBar>
+      <Button layoutX="92.0" layoutY="223.0" mnemonicParsing="false" onAction="#switchToIntro" text="Previous Page" />
    </children>
 </AnchorPane>
