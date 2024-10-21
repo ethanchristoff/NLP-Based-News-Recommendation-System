@@ -2,7 +2,6 @@ package com.example.ethan_perera_2331419;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -64,7 +63,7 @@ class ConsoleRedirect {
     }
 }
 
-public class news_app_controller implements Initializable {
+public class news_app_controller extends fundamental_tools implements Initializable{
 
     public static TextArea staticTxtArea;
     private Stage stage;
@@ -169,20 +168,21 @@ public class news_app_controller implements Initializable {
         System.exit(1);
     }
 
+    private final SQL_Content SQL_obj = new SQL_Content();
+    private PreparedStatement pstmt;
+    private ResultSet rs;
+    String sql;
+
     private boolean authenticateUser(String inputUsername, String inputPassword) {
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
+
+        sql = "SELECT username, password FROM users WHERE username = ? AND password = ?";
+        SQL_obj.set_query(sql);
+        pstmt = SQL_obj.getPreparedStatement();
 
         try {
-            final String dbUrl = "jdbc:mysql://localhost:3306/personalized_news_system";
-            conn = DriverManager.getConnection(dbUrl);
-
-            String sql = "SELECT username, password FROM users WHERE username = ? AND password = ?";
-            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, inputUsername);
             pstmt.setString(2, inputPassword);
-            rs = pstmt.executeQuery();
+            rs = SQL_obj.get_ResultSet(pstmt);
 
             if (rs.next()) {
                 String authenticatedUsername = rs.getString("username");
@@ -198,13 +198,8 @@ public class news_app_controller implements Initializable {
             showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
             return false;
         } finally {
-            try {
-                if (rs != null) rs.close();
-                if (pstmt != null) pstmt.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            SQL_obj.closeResources();
+            SQL_obj.close_connection();
         }
     }
 
@@ -219,6 +214,7 @@ public class news_app_controller implements Initializable {
         String new_username = new_username_input.getText();
         String new_password = new_password_input.getText();
         String re_entered_password = new_re_password_input.getText();
+
         if (Objects.equals(new_username, "") || Objects.equals(new_password, "")){
             showAlert("Missing Information", "Make sure you fill in the username and password field", Alert.AlertType.INFORMATION);
         } else if (Objects.equals(re_entered_password, "")) {
@@ -226,72 +222,37 @@ public class news_app_controller implements Initializable {
         } else if (!Objects.equals(new_password, re_entered_password)) {
             showAlert("Incorrect Password!","Ensure that the password you re-entered matches the other", Alert.AlertType.ERROR);
         } else {
-            Connection conn = null;
-            PreparedStatement pstmt = null;
+            sql = "SELECT COUNT(*) FROM users WHERE username = ?;";
+            SQL_obj.set_query(sql);
+            pstmt = SQL_obj.getPreparedStatement();
 
             try {
-                final String dbUrl = "jdbc:mysql://localhost:3306/personalized_news_system";
-                conn = DriverManager.getConnection(dbUrl);
-
-                String sql = "INSERT INTO users (username, password) VALUES (?, ?);\n";
-
-                pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, new_username);
-                pstmt.setString(2, new_password);
+                rs = pstmt.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    showAlert("Error", "Username already exists. Please choose another.", Alert.AlertType.ERROR);
+                } else {
+                    sql = "INSERT INTO users (username, password) VALUES (?, ?);";
+                    SQL_obj.set_query(sql);
+                    pstmt = SQL_obj.getPreparedStatement();
+                    pstmt.setString(1, new_username);
+                    pstmt.setString(2, new_password);
 
-                pstmt.executeUpdate();
+                    pstmt.executeUpdate();
 
-                showAlert("Success","Data Entered",Alert.AlertType.INFORMATION);
+                    showAlert("Success", "User registered successfully.", Alert.AlertType.INFORMATION);
+                    switchToIntro(event);
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
                 showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+            } finally {
+                SQL_obj.closeResources();
+                SQL_obj.close_connection();
             }
-            switchToIntro(event);
         }
     }
 
-    private void saveSession(String username, String password) {
-        String filename = "session_logs.txt";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            writer.write("username=" + username + "\n");
-            writer.write("password=" + password + "\n");
-            System.out.println("Session saved to " + filename);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Failed to save session.", Alert.AlertType.ERROR);
-        }
-    }
-
-    private void clearSession() {
-        String filename = "session_logs.txt";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            writer.write("");
-            System.out.println("Session log cleared.");
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Failed to clear session.", Alert.AlertType.ERROR);
-        }
-    }
-
-    private String[] readSession() {
-        String filename = "session_logs.txt";
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line;
-            String[] sessionData = new String[2];  // [username, password]
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("username=")) {
-                    sessionData[0] = line.split("=")[1];
-                } else if (line.startsWith("password=")) {
-                    sessionData[1] = line.split("=")[1];
-                }
-            }
-            return sessionData;
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Failed to read session.", Alert.AlertType.ERROR);
-            return null;
-        }
-    }
 
     public void print_user_details() {
         String[] sessionData = readSession();
@@ -300,15 +261,12 @@ public class news_app_controller implements Initializable {
             return;
         }
 
-        final String dbUrl = "jdbc:mysql://localhost:3306/personalized_news_system";
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
+        sql = "SELECT Read_Articles, Liked_Articles, Preferred_Genres  FROM users WHERE username = ? AND password = ?";
+        SQL_obj.set_query(sql);
+        pstmt = SQL_obj.getPreparedStatement();
 
         try {
-            conn = DriverManager.getConnection(dbUrl);
-            String sql = "SELECT Read_Articles, Liked_Articles, Preferred_Genres  FROM users WHERE username = ? AND password = ?";
-            pstmt = conn.prepareStatement(sql);
+
             pstmt.setString(1, sessionData[0]);
             pstmt.setString(2, sessionData[1]);
 
@@ -326,18 +284,13 @@ public class news_app_controller implements Initializable {
             e.printStackTrace();
             showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
         } finally {
-            try {
-                if (rs != null) rs.close();
-                if (pstmt != null) pstmt.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            SQL_obj.closeResources();
+            SQL_obj.close_connection();
         }
     }
 
     private final news_api_content news_obj = new news_api_content();
-    JsonArray articles = news_obj.test_news_api();
+    JsonArray articles = news_obj.get_news_api();
     @FXML
     Label article_header;
     @FXML
@@ -355,12 +308,49 @@ public class news_app_controller implements Initializable {
         }
     }
 
+    public void add_to_read(String url) {
+        sql = "UPDATE users SET Read_Articles = CONCAT(Read_Articles, ', ', ?, ' (', ?, ')') WHERE username = ?";
+        SQL_obj.set_query(sql);
+        pstmt = SQL_obj.getPreparedStatement();
+
+        try {
+            // Get the username from the session
+            String username = readSession()[0];
+
+            // Count the current number of articles in the Read_Articles column
+            String countSql = "SELECT LENGTH(Read_Articles) - LENGTH(REPLACE(Read_Articles, ',', '')) + 1 AS articleCount FROM users WHERE username = ?";
+            SQL_obj.set_query(countSql);
+            PreparedStatement countPstmt = SQL_obj.getPreparedStatement();
+            countPstmt.setString(1, username);
+            ResultSet countRs = countPstmt.executeQuery();
+            int articleCount = 0;
+
+            if (countRs.next()) {
+                articleCount = countRs.getInt("articleCount")!=0 ? countRs.getInt("articleCount") : 1;
+            }
+
+            pstmt.setString(1, url);
+            pstmt.setInt(2, articleCount);
+            pstmt.setString(3, username);
+
+            pstmt.executeUpdate();
+            showAlert("Information","Article URL added to the Read_Articles with number: " + articleCount,Alert.AlertType.INFORMATION);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+        } finally {
+            SQL_obj.closeResources();
+            SQL_obj.close_connection();
+        }
+    }
+
+
     private void displayArticle(int index) {
         JsonObject obj = articles.get(index).getAsJsonObject();
         article_header.setText(obj.get("title").getAsString());
         article_description.setText(obj.get("description").getAsString());
         String url = obj.get("url").getAsString();
-        article_link.setText(url);
         article_link.setOnAction(event -> {
             // Copies the link onto the users keyboard
             ClipboardContent content = new ClipboardContent();
@@ -371,14 +361,8 @@ public class news_app_controller implements Initializable {
             clipboard.setContent(content);
 
             showAlert("Information","Link copied!", Alert.AlertType.INFORMATION);
+            add_to_read(url);
         });
-    }
-
-    private void showAlert(String title, String content, Alert.AlertType alertType) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 
     @Override

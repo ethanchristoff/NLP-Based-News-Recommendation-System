@@ -13,7 +13,7 @@ public class news_api_content {
     private static final String API_KEY = System.getenv("apikey");
     private static final String API_URL = "https://newsapi.org/v2/top-headlines?country=us&apiKey=" + API_KEY;
 
-    public JsonArray test_news_api() {
+    public JsonArray get_news_api() {
         try {
             // Create a URL object with the API URL
             URL url = new URL(API_URL);
