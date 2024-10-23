@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.fxml.Initializable;
 
@@ -215,43 +216,55 @@ public class news_app_controller extends fundamental_tools implements Initializa
         String new_password = new_password_input.getText();
         String re_entered_password = new_re_password_input.getText();
 
-        if (Objects.equals(new_username, "") || Objects.equals(new_password, "")){
+        if (Objects.equals(new_username, "") || Objects.equals(new_password, "")) {
             showAlert("Missing Information", "Make sure you fill in the username and password field", Alert.AlertType.INFORMATION);
         } else if (Objects.equals(re_entered_password, "")) {
-            showAlert("Missing Information","Ensure that you re-enter your password",Alert.AlertType.INFORMATION);
+            showAlert("Missing Information", "Ensure that you re-enter your password", Alert.AlertType.INFORMATION);
         } else if (!Objects.equals(new_password, re_entered_password)) {
-            showAlert("Incorrect Password!","Ensure that the password you re-entered matches the other", Alert.AlertType.ERROR);
+            showAlert("Incorrect Password!", "Ensure that the password you re-entered matches the other", Alert.AlertType.ERROR);
         } else {
             sql = "SELECT COUNT(*) FROM users WHERE username = ?;";
             SQL_obj.set_query(sql);
-            pstmt = SQL_obj.getPreparedStatement();
+            PreparedStatement selectPstmt = SQL_obj.getPreparedStatement();
 
             try {
-                pstmt.setString(1, new_username);
-                rs = pstmt.executeQuery();
+                selectPstmt.setString(1, new_username);
+                rs = selectPstmt.executeQuery();
+
                 if (rs.next() && rs.getInt(1) > 0) {
                     showAlert("Error", "Username already exists. Please choose another.", Alert.AlertType.ERROR);
                 } else {
                     sql = "INSERT INTO users (username, password) VALUES (?, ?);";
                     SQL_obj.set_query(sql);
-                    pstmt = SQL_obj.getPreparedStatement();
-                    pstmt.setString(1, new_username);
-                    pstmt.setString(2, new_password);
+                    PreparedStatement insertPstmt = SQL_obj.getPreparedStatement();
 
-                    pstmt.executeUpdate();
+                    try {
+                        insertPstmt.setString(1, new_username);
+                        insertPstmt.setString(2, new_password);
+                        insertPstmt.executeUpdate();
 
-                    showAlert("Success", "User registered successfully.", Alert.AlertType.INFORMATION);
-                    switchToIntro(event);
+                        showAlert("Success", "User registered successfully.", Alert.AlertType.INFORMATION);
+                        switchToIntro(event);
+                    } finally {
+                        insertPstmt.close(); // Close the INSERT PreparedStatement after use
+                    }
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
                 showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
             } finally {
-                SQL_obj.closeResources();
-                SQL_obj.close_connection();
+                try {
+                    if (rs != null) rs.close();
+                    if (selectPstmt != null) selectPstmt.close(); // Close the SELECT PreparedStatement after use
+                    SQL_obj.closeResources();
+                    SQL_obj.close_connection();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
+
 
 
     public void print_user_details() {
@@ -296,6 +309,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
     @FXML
     Label article_description;
     @FXML
+    ScrollPane article_content;
+    @FXML
     Hyperlink article_link;
 
     int count = 0;
@@ -309,32 +324,18 @@ public class news_app_controller extends fundamental_tools implements Initializa
     }
 
     public void add_to_read(String url) {
-        sql = "UPDATE users SET Read_Articles = CONCAT(Read_Articles, ', ', ?, ' (', ?, ')') WHERE username = ?";
+        // Update query to append the URL to the Read_Articles column
+        sql = " UPDATE users SET Read_Articles = CONCAT(IFNULL(Read_Articles, ''), ?, ', ') WHERE username = ? ";
         SQL_obj.set_query(sql);
         pstmt = SQL_obj.getPreparedStatement();
 
         try {
-            // Get the username from the session
             String username = readSession()[0];
 
-            // Count the current number of articles in the Read_Articles column
-            String countSql = "SELECT LENGTH(Read_Articles) - LENGTH(REPLACE(Read_Articles, ',', '')) + 1 AS articleCount FROM users WHERE username = ?";
-            SQL_obj.set_query(countSql);
-            PreparedStatement countPstmt = SQL_obj.getPreparedStatement();
-            countPstmt.setString(1, username);
-            ResultSet countRs = countPstmt.executeQuery();
-            int articleCount = 0;
-
-            if (countRs.next()) {
-                articleCount = countRs.getInt("articleCount")!=0 ? countRs.getInt("articleCount") : 1;
-            }
-
             pstmt.setString(1, url);
-            pstmt.setInt(2, articleCount);
-            pstmt.setString(3, username);
+            pstmt.setString(2, username);
 
             pstmt.executeUpdate();
-            showAlert("Information","Article URL added to the Read_Articles with number: " + articleCount,Alert.AlertType.INFORMATION);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -346,24 +347,43 @@ public class news_app_controller extends fundamental_tools implements Initializa
     }
 
 
+
     private void displayArticle(int index) {
         JsonObject obj = articles.get(index).getAsJsonObject();
+
+        // Set the article title and description
         article_header.setText(obj.get("title").getAsString());
         article_description.setText(obj.get("description").getAsString());
+
+        // Create a VBox to hold the content of the article
+        VBox articleBox = new VBox();
+        articleBox.setSpacing(10); // Add some spacing between elements
+
+        // Add content to the VBox
+        Label contentLabel = new Label(obj.get("content").getAsString()); // Assuming the API returns 'content'
+        contentLabel.setWrapText(true); // Allow the label to wrap text
+
+        // Add the label to the VBox
+        articleBox.getChildren().add(contentLabel);
+
+        // Set the VBox as the content of the ScrollPane
+        article_content.setContent(articleBox);
+
+        // Adjust ScrollPane properties if needed
+        article_content.setFitToWidth(true); // Fit content to the width of the ScrollPane
+
+        // Set the hyperlink and copy the URL to the clipboard when clicked
         String url = obj.get("url").getAsString();
         article_link.setOnAction(event -> {
-            // Copies the link onto the users keyboard
             ClipboardContent content = new ClipboardContent();
-
             content.putString(url);
-
             Clipboard clipboard = Clipboard.getSystemClipboard();
             clipboard.setContent(content);
-
-            showAlert("Information","Link copied!", Alert.AlertType.INFORMATION);
+            showAlert("Information", "Link copied!", Alert.AlertType.INFORMATION);
             add_to_read(url);
         });
     }
+
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
