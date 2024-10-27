@@ -12,7 +12,7 @@ public class fundamental_tools {
         alert.showAndWait();
     }
 
-    public void saveSession(String username, String password) {
+    public void saveSessionCredentials(String username, String password) {
         String filename = "session_logs.txt";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write("username=" + username + "\n");
@@ -24,7 +24,7 @@ public class fundamental_tools {
         }
     }
 
-    public void clearSession() {
+    public void clearSessionCredentials() {
         String filename = "session_logs.txt";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write("");
@@ -35,7 +35,7 @@ public class fundamental_tools {
         }
     }
 
-    public String[] readSession() {
+    public String[] readSessionCredentials() {
         String filename = "session_logs.txt";
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line;

@@ -7,6 +7,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.news_app_controller">
@@ -26,5 +27,7 @@
       <Button layoutX="43.0" layoutY="219.0" mnemonicParsing="false" onAction="#switchToHome" text="Previous Page" />
       <Hyperlink fx:id="article_link" layoutX="191.0" layoutY="323.0" prefHeight="62.0" prefWidth="378.0" text="Click Me to get the link to the article" wrapText="true" />
       <ScrollPane fx:id="article_content" layoutX="191.0" layoutY="159.0" prefHeight="171.0" prefWidth="366.0" />
+      <TextField fx:id="category_input" layoutX="31.0" layoutY="285.0" prefHeight="26.0" prefWidth="113.0" />
+      <Label layoutX="42.0" layoutY="258.0" text="Select a category:" />
    </children>
 </AnchorPane>

@@ -20,8 +20,6 @@ import java.io.*;
 import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -87,7 +85,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
             showAlert("Error", "Input Fields Empty!", Alert.AlertType.ERROR);
         } else {
             if (authenticateUser(inputUsername, inputPassword)) {
-                saveSession(inputUsername, inputPassword);
+                saveSessionCredentials(inputUsername, inputPassword);
                 try {
                     root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("text_area_test.fxml")));
 
@@ -165,7 +163,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
     }
 
     public void exit_program() {
-        clearSession();
+        clearSessionCredentials();
         System.exit(1);
     }
 
@@ -268,7 +266,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
 
     public void print_user_details() {
-        String[] sessionData = readSession();
+        String[] sessionData = readSessionCredentials();
         if (sessionData == null || sessionData[0] == null || sessionData[1] == null) {
             showAlert("Error", "Session not found. Please login first.", Alert.AlertType.ERROR);
             return;
@@ -289,7 +287,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
                 String read_articles = rs.getString("Read_Articles");
                 String liked_articles = rs.getString("Liked_Articles");
                 String preferred_genres = rs.getString("Preferred_Genres");
-                System.out.printf("Read Articles: %s\nLiked Articles: %s\nPreferred Genres: %s",read_articles,liked_articles,preferred_genres);
+                System.out.printf("Read com.example.ethan_perera_2331419.Articles: %s\nLiked com.example.ethan_perera_2331419.Articles: %s\nPreferred Genres: %s",read_articles,liked_articles,preferred_genres);
             } else {
                 showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
             }
@@ -302,7 +300,12 @@ public class news_app_controller extends fundamental_tools implements Initializa
         }
     }
 
-    private final news_api_content news_obj = new news_api_content();
+    @FXML
+    TextField category_input;
+
+
+
+    private news_api_content news_obj = new news_api_content("business");;
     JsonArray articles = news_obj.get_news_api();
     @FXML
     Label article_header;
@@ -318,8 +321,10 @@ public class news_app_controller extends fundamental_tools implements Initializa
         if (articles != null && articles.size() > 0) {
             count = (count + 1) % articles.size();
             displayArticle(count);
+        } else if (Objects.equals(category_input.getText(), "")) {
+            showAlert("Missing Information","Ensure that you fill the categories field!", Alert.AlertType.INFORMATION);
         } else {
-            showAlert("No Articles", "No articles to display.", Alert.AlertType.INFORMATION);
+            showAlert("No com.example.ethan_perera_2331419.Articles", "No articles to display.", Alert.AlertType.INFORMATION);
         }
     }
 
@@ -330,7 +335,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
         pstmt = SQL_obj.getPreparedStatement();
 
         try {
-            String username = readSession()[0];
+            String username = readSessionCredentials()[0];
 
             pstmt.setString(1, url);
             pstmt.setString(2, username);
@@ -351,28 +356,21 @@ public class news_app_controller extends fundamental_tools implements Initializa
     private void displayArticle(int index) {
         JsonObject obj = articles.get(index).getAsJsonObject();
 
-        // Set the article title and description
         article_header.setText(obj.get("title").getAsString());
         article_description.setText(obj.get("description").getAsString());
 
-        // Create a VBox to hold the content of the article
         VBox articleBox = new VBox();
-        articleBox.setSpacing(10); // Add some spacing between elements
+        articleBox.setSpacing(10);
 
-        // Add content to the VBox
-        Label contentLabel = new Label(obj.get("content").getAsString()); // Assuming the API returns 'content'
-        contentLabel.setWrapText(true); // Allow the label to wrap text
+        Label contentLabel = new Label(obj.get("content").getAsString());
+        contentLabel.setWrapText(true);
 
-        // Add the label to the VBox
         articleBox.getChildren().add(contentLabel);
 
-        // Set the VBox as the content of the ScrollPane
         article_content.setContent(articleBox);
 
-        // Adjust ScrollPane properties if needed
-        article_content.setFitToWidth(true); // Fit content to the width of the ScrollPane
+        article_content.setFitToWidth(true);
 
-        // Set the hyperlink and copy the URL to the clipboard when clicked
         String url = obj.get("url").getAsString();
         article_link.setOnAction(event -> {
             ClipboardContent content = new ClipboardContent();
