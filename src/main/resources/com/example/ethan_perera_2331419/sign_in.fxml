@@ -20,7 +20,7 @@
           </Menu>
         </menus>
       </MenuBar>
-      <Button layoutX="315.0" layoutY="266.0" mnemonicParsing="false" onAction="#switchToMain" text="Login" />
+      <Button layoutX="315.0" layoutY="266.0" mnemonicParsing="false" onAction="#switchToHome_Validated" text="Login" />
       <Label layoutX="84.0" layoutY="60.0" text="News Paper Recommendation App">
          <font>
             <Font size="28.0" />

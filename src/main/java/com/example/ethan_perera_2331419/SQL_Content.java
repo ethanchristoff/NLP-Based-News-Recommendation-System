@@ -11,8 +11,12 @@ public class SQL_Content extends fundamental_tools {
     ResultSet rs;
     String SQL_Query;
 
-    // Constructor: Establishes the database connection
     public SQL_Content() {
+        open_connection();// When instantiated, a connection is established
+    }
+
+    // Initiates the connection with the database
+    public void open_connection() {
         try {
             conn = DriverManager.getConnection(dbUrl);
         } catch (SQLException e) {
@@ -53,8 +57,8 @@ public class SQL_Content extends fundamental_tools {
     // Closes the PreparedStatement and ResultSet when done
     public void closeResources() {
         try {
-            if (rs != null) rs.close();  // Close ResultSet
-            if (pstmt != null) pstmt.close();  // Close PreparedStatement
+            if (rs != null) rs.close();  // Closes ResultSet
+            if (pstmt != null) pstmt.close();  // Closes PreparedStatement
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -63,7 +67,7 @@ public class SQL_Content extends fundamental_tools {
     // Closes the database connection
     public void close_connection() {
         try {
-            if (conn != null) conn.close();  // Close connection
+            if (conn != null) conn.close();  // Closes connection
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

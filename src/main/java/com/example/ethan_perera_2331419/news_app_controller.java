@@ -24,6 +24,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javafx.scene.web.WebView;
+
+
 class ConsoleRedirect {
     private final TextArea textArea;
     private final PrintStream consoleStream;
@@ -55,11 +58,6 @@ class ConsoleRedirect {
     private void appendText(String text) {
         Platform.runLater(() -> textArea.appendText(text));
     }
-
-    public void restoreConsole() {
-        System.setOut(consoleStream);
-        System.setErr(consoleStream);
-    }
 }
 
 public class news_app_controller extends fundamental_tools implements Initializable{
@@ -77,7 +75,9 @@ public class news_app_controller extends fundamental_tools implements Initializa
     @FXML
     private TextArea text_output_area;
 
-    public void switchToMain(ActionEvent event) {
+    //------Scene Switchers------
+
+    public void switchToHome_Validated(ActionEvent event) {
         String inputUsername = username_input.getText();
         String inputPassword = password_input.getText();
 
@@ -87,7 +87,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
             if (authenticateUser(inputUsername, inputPassword)) {
                 saveSessionCredentials(inputUsername, inputPassword);
                 try {
-                    root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("text_area_test.fxml")));
+                    root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home_page.fxml")));
 
                     if (root == null) {
                         showAlert("Error", "FXML file not found!", Alert.AlertType.ERROR);
@@ -106,11 +106,25 @@ public class news_app_controller extends fundamental_tools implements Initializa
         }
     }
 
+    public void switchToHome_Not_Validated(ActionEvent event) throws IOException{
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home_page.fxml")));
+
+        if (root == null) {
+            showAlert("Error", "Failed to load Home page!", Alert.AlertType.ERROR);
+            return;
+        }
+
+        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
     public void switchToSignUp(ActionEvent event) throws IOException{
         root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("sign_up.fxml")));
 
         if (root == null) {
-            showAlert("Error", "Failed to load introduction page!", Alert.AlertType.ERROR);
+            showAlert("Error", "Failed to load Sign up page!", Alert.AlertType.ERROR);
             return;
         }
 
@@ -138,7 +152,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
         root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("view_article_page.fxml")));
 
         if (root == null) {
-            showAlert("Error", "Failed to load introduction page!", Alert.AlertType.ERROR);
+            showAlert("Error", "Failed to load Article Viewer page!", Alert.AlertType.ERROR);
             return;
         }
 
@@ -148,29 +162,19 @@ public class news_app_controller extends fundamental_tools implements Initializa
         stage.show();
     }
 
-    public void switchToHome(ActionEvent event) throws IOException{
-        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("text_area_test.fxml")));
-
-        if (root == null) {
-            showAlert("Error", "Failed to load introduction page!", Alert.AlertType.ERROR);
-            return;
-        }
-
-        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
-    }
+    //------Exit Program---
 
     public void exit_program() {
         clearSessionCredentials();
         System.exit(1);
     }
 
+    //------Authenticate User------
+
     private final SQL_Content SQL_obj = new SQL_Content();
     private PreparedStatement pstmt;
     private ResultSet rs;
-    String sql;
+    private String sql;
 
     private boolean authenticateUser(String inputUsername, String inputPassword) {
 
@@ -202,6 +206,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
         }
     }
 
+    //------Sign Up Function for the sign up pages------
+
     @FXML
     TextField new_username_input;
     @FXML
@@ -210,6 +216,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
     TextField new_re_password_input;
 
     public void sign_up(ActionEvent event) throws IOException {
+        SQL_obj.open_connection();// Ensures that the connection is always opened in case an error closes it
         String new_username = new_username_input.getText();
         String new_password = new_password_input.getText();
         String re_entered_password = new_re_password_input.getText();
@@ -253,7 +260,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
             } finally {
                 try {
                     if (rs != null) rs.close();
-                    if (selectPstmt != null) selectPstmt.close(); // Close the SELECT PreparedStatement after use
+                    if (selectPstmt != null) selectPstmt.close();
                     SQL_obj.closeResources();
                     SQL_obj.close_connection();
                 } catch (SQLException e) {
@@ -263,7 +270,10 @@ public class news_app_controller extends fundamental_tools implements Initializa
         }
     }
 
+    //------Display User Details function to present previously liked articles------
 
+    @FXML
+    Button see_details_btn;
 
     public void print_user_details() {
         String[] sessionData = readSessionCredentials();
@@ -287,7 +297,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
                 String read_articles = rs.getString("Read_Articles");
                 String liked_articles = rs.getString("Liked_Articles");
                 String preferred_genres = rs.getString("Preferred_Genres");
-                System.out.printf("Read com.example.ethan_perera_2331419.Articles: %s\nLiked com.example.ethan_perera_2331419.Articles: %s\nPreferred Genres: %s",read_articles,liked_articles,preferred_genres);
+                System.out.printf("Read Articles: %s\nLiked Articles: %s\nPreferred Genres: %s",read_articles,liked_articles,preferred_genres);
             } else {
                 showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
             }
@@ -297,39 +307,33 @@ public class news_app_controller extends fundamental_tools implements Initializa
         } finally {
             SQL_obj.closeResources();
             SQL_obj.close_connection();
+            see_details_btn.setDisable(true);
         }
     }
 
-    @FXML
-    TextField category_input;
+    // The following functon simply creates a prepared statement that pushes a query into the database to add
+    // the most recently read article to a column in the users table
 
-
-
-    private news_api_content news_obj = new news_api_content("business");;
-    JsonArray articles = news_obj.get_news_api();
+    private final JSON_Reader news_obj = new JSON_Reader();// Instantiated object for JSON File reader
+    private final JsonArray articles = news_obj.readJsonFile();// JsonArray for news articles
     @FXML
     Label article_header;
     @FXML
-    Label article_description;
+    Label article_category;
+    @FXML
+    Label article_release_date;
+    @FXML
+    TextField filtered_articles;
     @FXML
     ScrollPane article_content;
     @FXML
     Hyperlink article_link;
-
-    int count = 0;
-    public void next_article() {
-        if (articles != null && articles.size() > 0) {
-            count = (count + 1) % articles.size();
-            displayArticle(count);
-        } else if (Objects.equals(category_input.getText(), "")) {
-            showAlert("Missing Information","Ensure that you fill the categories field!", Alert.AlertType.INFORMATION);
-        } else {
-            showAlert("No com.example.ethan_perera_2331419.Articles", "No articles to display.", Alert.AlertType.INFORMATION);
-        }
-    }
+    @FXML
+    Button like_btn;
+    @FXML
+    WebView news_webview;
 
     public void add_to_read(String url) {
-        // Update query to append the URL to the Read_Articles column
         sql = " UPDATE users SET Read_Articles = CONCAT(IFNULL(Read_Articles, ''), ?, ', ') WHERE username = ? ";
         SQL_obj.set_query(sql);
         pstmt = SQL_obj.getPreparedStatement();
@@ -351,40 +355,122 @@ public class news_app_controller extends fundamental_tools implements Initializa
         }
     }
 
+    //------Article Switcher------
+
+    int count = 0;
+    public void next_article() {
+        if (articles != null && articles.size() > 0) {
+            count = (count + 1) % articles.size();
+            displayArticle(count, true);
+            like_btn.setDisable(false);
+            news_webview.setManaged(true);
+        } else {
+            showAlert("No Articles", "No articles to display.", Alert.AlertType.INFORMATION);
+        }
+    }
+
+    public void previous_article() {
+        if (articles != null && articles.size() > 0) {
+            count = (count - 1 + articles.size()) % articles.size(); // Move to the previous article
+            displayArticle(count, false); // Backward direction
+            like_btn.setDisable(false);
+        } else {
+            showAlert("No Articles", "No articles to display.", Alert.AlertType.INFORMATION);
+        }
+    }
 
 
-    private void displayArticle(int index) {
-        JsonObject obj = articles.get(index).getAsJsonObject();
+    //------Display Article Function------
 
-        article_header.setText(obj.get("title").getAsString());
-        article_description.setText(obj.get("description").getAsString());
+    private final Web_Content web_instance = new Web_Content();
 
-        VBox articleBox = new VBox();
-        articleBox.setSpacing(10);
+    private void displayArticle(int index, boolean forward) {
+        String ignoredGenre = filtered_articles.getText().trim();
+        int originalIndex = index;
 
-        Label contentLabel = new Label(obj.get("content").getAsString());
+        do {
+            JsonObject article = articles.get(index).getAsJsonObject();
+            String category = article.get("category").getAsString();
+
+            if (!category.equalsIgnoreCase(ignoredGenre)) {
+                updateArticleUI(article);
+                return;
+            }
+
+            index = forward ? (index + 1) % articles.size() : (index - 1 + articles.size()) % articles.size();
+        } while (index != originalIndex); // Loop until it has cycled through all articles
+
+        showAlert("No Articles", "No articles available for the selected filter.", Alert.AlertType.INFORMATION);
+    }
+
+    // The following functions are sub-functions of the displayArticle function to minimize the strain on the application
+    // when running it. It's broken down by having each function execute a smaller task like so
+
+    private void updateArticleUI(JsonObject article) {
+        article_header.setText(article.get("headline").getAsString());
+        article_category.setText(article.get("category").getAsString());
+        article_release_date.setText(article.get("date").getAsString());
+
+        // Vbox used to enable scrolling in large descriptions
+
+        VBox articleBox = new VBox(10); // Sets the spacing set directly in constructor
+        Label contentLabel = new Label(article.get("short_description").getAsString());
         contentLabel.setWrapText(true);
 
         articleBox.getChildren().add(contentLabel);
-
         article_content.setContent(articleBox);
-
         article_content.setFitToWidth(true);
 
-        String url = obj.get("url").getAsString();
+        String url = article.get("link").getAsString();
+        setupArticleLinkAction(url);
+        web_instance.load_page(url); // Loads the article page
+
+        setupLikeButtonAction(article.get("short_description").getAsString());
+    }
+
+    // Article link disabled until an article is linked to it
+
+    private void setupArticleLinkAction(String url) {
+        SQL_obj.open_connection();
         article_link.setOnAction(event -> {
-            ClipboardContent content = new ClipboardContent();
-            content.putString(url);
             Clipboard clipboard = Clipboard.getSystemClipboard();
-            clipboard.setContent(content);
+            clipboard.setContent(new ClipboardContent() {{ putString(url); }});
             showAlert("Information", "Link copied!", Alert.AlertType.INFORMATION);
             add_to_read(url);
         });
     }
 
+    private void setupLikeButtonAction(String description) {
+        like_btn.setOnAction(event -> like_article(description, readSessionCredentials()[0]));// Inputs username and description of article that was liked
+        like_btn.setDisable(false);
+    }
+
+    public void like_article(String description, String userName) {
+        showAlert("Article Liked", "The article was liked!", Alert.AlertType.INFORMATION);
+        like_btn.setDisable(true);
+
+        String fileName = userName + "_liked_articles.txt";
+        try (FileWriter writer = new FileWriter(fileName, true)) {
+            writer.append(description).append("\n-------------------\n");
+        } catch (IOException e) {
+            showAlert("Error", "Failed to save the article description.", Alert.AlertType.ERROR);
+            e.printStackTrace();
+        }
+    }
+
+    public void reload_page(){
+        web_instance.reload_page();
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        // Error handling to prevent application from NOT running
+        if (news_webview != null) {
+            web_instance.initialize_engine(news_webview);
+        } else {
+            System.err.println("WebView is not yet initialized! Check your FXML.");
+        }
+
         if (text_output_area != null) {
             staticTxtArea = text_output_area;
             new ConsoleRedirect(text_output_area);
