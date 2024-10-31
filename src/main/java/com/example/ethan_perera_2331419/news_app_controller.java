@@ -29,11 +29,10 @@ import javafx.scene.web.WebView;
 
 class ConsoleRedirect {
     private final TextArea textArea;
-    private final PrintStream consoleStream;
 
     public ConsoleRedirect(TextArea textArea) {
         this.textArea = textArea;
-        consoleStream = System.out;
+        PrintStream consoleStream = System.out;
         OutputStream out = new OutputStream() {
             @Override
             public void write(int b) {
@@ -323,8 +322,6 @@ public class news_app_controller extends fundamental_tools implements Initializa
     @FXML
     Label article_release_date;
     @FXML
-    TextField filtered_articles;
-    @FXML
     ScrollPane article_content;
     @FXML
     Hyperlink article_link;
@@ -332,6 +329,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
     Button like_btn;
     @FXML
     WebView news_webview;
+    @FXML
+    ChoiceBox<String> filtered_articles_choicebox;
 
     public void add_to_read(String url) {
         sql = " UPDATE users SET Read_Articles = CONCAT(IFNULL(Read_Articles, ''), ?, ', ') WHERE username = ? ";
@@ -385,7 +384,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
     private final Web_Content web_instance = new Web_Content();
 
     private void displayArticle(int index, boolean forward) {
-        String ignoredGenre = filtered_articles.getText().trim();
+        String ignoredGenre = filtered_articles_choicebox.getValue();
         int originalIndex = index;
 
         do {
@@ -462,8 +461,15 @@ public class news_app_controller extends fundamental_tools implements Initializa
         web_instance.reload_page();
     }
 
+    private final String[] categories_array = news_obj.get_categories();
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        if (filtered_articles_choicebox == (null)){
+            System.err.println("ChoiceBox not yet initialized");
+        }else
+            filtered_articles_choicebox.getItems().addAll(categories_array);
+
         // Error handling to prevent application from NOT running
         if (news_webview != null) {
             web_instance.initialize_engine(news_webview);

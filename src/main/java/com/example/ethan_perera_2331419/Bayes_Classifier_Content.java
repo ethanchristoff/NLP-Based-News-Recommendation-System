@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-class NaiveBayesClassifier {
+class Bayes_Classifier_Content {
 
     private final Map<String, Integer> sportsWords = new HashMap<>();
     private final Map<String, Integer> politicsWords = new HashMap<>();
@@ -105,7 +105,7 @@ class NaiveBayesClassifier {
     }
 
     public static void main(String[] args) {
-        NaiveBayesClassifier classifier = new NaiveBayesClassifier();
+        Bayes_Classifier_Content classifier = new Bayes_Classifier_Content();
         Scanner sc = new Scanner(System.in);
 
         // Training data

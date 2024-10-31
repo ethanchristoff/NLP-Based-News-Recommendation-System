@@ -10,7 +10,6 @@ public class Web_Content {
     public void initialize_engine(WebView webView) {
         if (webView != null) {
             engine = webView.getEngine();
-            load_page("https://www.google.com"); // Pre-load the web page
             webView.setManaged(false);
         } else {
             System.err.println("WebView is not initialized!");
