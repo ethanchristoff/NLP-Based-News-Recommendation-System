@@ -133,11 +133,39 @@ public class news_app_controller extends fundamental_tools implements Initializa
         stage.show();
     }
 
+    public void switchToSignIn(ActionEvent event) throws IOException{
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("sign_in.fxml")));
+
+        if (root == null) {
+            showAlert("Error", "Failed to load Sign in page!", Alert.AlertType.ERROR);
+            return;
+        }
+
+        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
     public void switchToIntro(ActionEvent event) throws IOException {
         root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("sign_in.fxml")));
 
         if (root == null) {
             showAlert("Error", "Failed to load introduction page!", Alert.AlertType.ERROR);
+            return;
+        }
+
+        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public void switchToResetPassword(ActionEvent event) throws IOException {
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("reset_password.fxml")));
+
+        if (root == null) {
+            showAlert("Error", "Failed to load Reset Password page!", Alert.AlertType.ERROR);
             return;
         }
 
@@ -268,6 +296,59 @@ public class news_app_controller extends fundamental_tools implements Initializa
             }
         }
     }
+
+    //------Reset Password Function------
+
+    @FXML
+    TextField reset_pword_username_input;
+    @FXML
+    TextField reset_password_input;
+    @FXML
+    TextField reset_re_password_input;
+
+    public void resetPassword(ActionEvent event) throws IOException{
+        SQL_obj.open_connection();
+        String resetUsername = reset_pword_username_input.getText();
+        String resetPassword = reset_password_input.getText();
+        String resetRePassword = reset_re_password_input.getText();
+
+        if (Objects.equals(resetUsername, "") || Objects.equals(resetPassword, "") || Objects.equals(resetRePassword, "")) {
+            showAlert("Missing Information", "Ensure that you fill all the fields!", Alert.AlertType.INFORMATION);
+        } else {
+            String checkSql = "SELECT username FROM users WHERE username = ? AND password = ?";
+            SQL_obj.set_query(checkSql);
+            pstmt = SQL_obj.getPreparedStatement();
+
+            try {
+                pstmt.setString(1, resetUsername);
+                pstmt.setString(2, resetPassword);
+                rs = SQL_obj.get_ResultSet(pstmt);
+
+                if (rs.next()) {
+                    String updateSql = "UPDATE users SET password = ? WHERE username = ?";
+                    SQL_obj.set_query(updateSql);
+                    pstmt = SQL_obj.getPreparedStatement();
+
+                    pstmt.setString(1, resetRePassword);
+                    pstmt.setString(2, resetUsername);
+                    pstmt.executeUpdate();
+
+                    showAlert("Success", "Password has been reset successfully.", Alert.AlertType.INFORMATION);
+                    switchToSignIn(event);
+                } else {
+                    // Username or password did not match
+                    showAlert("Error", "Invalid username or current password.", Alert.AlertType.ERROR);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+            } finally {
+                SQL_obj.closeResources();
+                SQL_obj.close_connection();
+            }
+        }
+    }
+
 
     //------Display User Details function to present previously liked articles------
 
