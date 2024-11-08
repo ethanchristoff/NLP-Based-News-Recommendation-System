@@ -22,5 +22,7 @@
       </MenuBar>
       <Button layoutX="92.0" layoutY="155.0" mnemonicParsing="false" onAction="#switchToIntro" text="Previous Page" />
       <Button layoutX="93.0" layoutY="232.0" mnemonicParsing="false" onAction="#switchToArticleViewer" text="Article Viewer" />
+      <Button fx:id="recommended_articles_btn" layoutX="51.0" layoutY="272.0" mnemonicParsing="false" onAction="#switchToReommendedArticleViewer" text="Recommended Article Viewer" />
+      <Button fx:id="personal_details_btn" layoutX="440.0" layoutY="48.0" mnemonicParsing="false" onAction="#switchToUserPage" text="View Personal Details" />
    </children>
 </AnchorPane>

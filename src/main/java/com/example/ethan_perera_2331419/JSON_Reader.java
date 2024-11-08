@@ -28,6 +28,7 @@ public class JSON_Reader {
         return jsonArray;
     }
 
+    // Returns the categories of the news json file
     public static String[] get_categories() {
         JsonArray array = readJsonFile();
         Set<String> categorySet = new HashSet<>();

@@ -32,5 +32,6 @@
       <TextField fx:id="username_input" layoutX="226.0" layoutY="122.0" prefHeight="26.0" prefWidth="223.0" />
       <Button layoutX="197.0" layoutY="269.0" mnemonicParsing="false" onAction="#switchToSignUp" text="Sign Up" />
       <Button layoutX="338.0" layoutY="269.0" mnemonicParsing="false" onAction="#switchToResetPassword" text="Reset Password" />
+      <Button layoutX="225.0" layoutY="310.0" mnemonicParsing="false" onAction="#switchToHome_Temp_Creds" text="Login without credentials" />
    </children>
 </AnchorPane>

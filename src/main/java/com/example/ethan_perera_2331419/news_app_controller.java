@@ -18,6 +18,9 @@ import javafx.fxml.Initializable;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.sql.PreparedStatement;
@@ -105,6 +108,20 @@ public class news_app_controller extends fundamental_tools implements Initializa
         }
     }
 
+    public void switchToHome_Temp_Creds(ActionEvent event) throws IOException{
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home_page.fxml")));
+
+        if (root == null) {
+            showAlert("Error", "Failed to load Home page!", Alert.AlertType.ERROR);
+            return;
+        }
+
+        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
     public void switchToHome_Not_Validated(ActionEvent event) throws IOException{
         root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home_page.fxml")));
 
@@ -189,6 +206,53 @@ public class news_app_controller extends fundamental_tools implements Initializa
         stage.show();
     }
 
+    @FXML
+    Button recommended_articles_btn;
+    @FXML
+    Button personal_details_btn;
+
+    public void switchToUserPage(ActionEvent event) throws IOException{
+
+        String[] sessionData = readSessionCredentials();
+        if (validate_session(sessionData)) {
+            personal_details_btn.setDisable(true);
+            return;
+        }
+
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("user_page.fxml")));
+
+        if (root == null) {
+            showAlert("Error", "Failed to load User page!", Alert.AlertType.ERROR);
+            return;
+        }
+
+        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    public void switchToReommendedArticleViewer(ActionEvent event) throws IOException{
+
+        String[] sessionData = readSessionCredentials();
+        if (validate_session(sessionData)) {
+            recommended_articles_btn.setDisable(true);
+            return;
+        }
+
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("view_recommended_articles_page.fxml")));
+
+        if (root == null) {
+            showAlert("Error", "Failed to load Recommended Article Viewer page!", Alert.AlertType.ERROR);
+            return;
+        }
+
+        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
     //------Exit Program---
 
     public void exit_program() {
@@ -247,6 +311,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
         String new_username = new_username_input.getText();
         String new_password = new_password_input.getText();
         String re_entered_password = new_re_password_input.getText();
+        String[] password_validated_array = validatePassword(new_password);
+        boolean password_valiadated = !Objects.equals(password_validated_array[0], "false");
 
         if (Objects.equals(new_username, "") || Objects.equals(new_password, "")) {
             showAlert("Missing Information", "Make sure you fill in the username and password field", Alert.AlertType.INFORMATION);
@@ -254,7 +320,9 @@ public class news_app_controller extends fundamental_tools implements Initializa
             showAlert("Missing Information", "Ensure that you re-enter your password", Alert.AlertType.INFORMATION);
         } else if (!Objects.equals(new_password, re_entered_password)) {
             showAlert("Incorrect Password!", "Ensure that the password you re-entered matches the other", Alert.AlertType.ERROR);
-        } else {
+        } else if (!password_valiadated) {
+            showAlert("Password complexity",password_validated_array[1], Alert.AlertType.ERROR);
+        }else {
             sql = "SELECT COUNT(*) FROM users WHERE username = ?;";
             SQL_obj.set_query(sql);
             PreparedStatement selectPstmt = SQL_obj.getPreparedStatement();
@@ -306,15 +374,19 @@ public class news_app_controller extends fundamental_tools implements Initializa
     @FXML
     TextField reset_re_password_input;
 
-    public void resetPassword(ActionEvent event) throws IOException{
+    public void resetPassword(ActionEvent event) throws IOException {
         SQL_obj.open_connection();
         String resetUsername = reset_pword_username_input.getText();
         String resetPassword = reset_password_input.getText();
         String resetRePassword = reset_re_password_input.getText();
+        String[] password_validated_array = validatePassword(resetPassword);
+        boolean password_valiadated = !Objects.equals(password_validated_array[0], "false");
 
         if (Objects.equals(resetUsername, "") || Objects.equals(resetPassword, "") || Objects.equals(resetRePassword, "")) {
             showAlert("Missing Information", "Ensure that you fill all the fields!", Alert.AlertType.INFORMATION);
-        } else {
+        }else if (!password_valiadated) {
+            showAlert("Password complexity",password_validated_array[1], Alert.AlertType.ERROR);
+        }else {
             String checkSql = "SELECT username FROM users WHERE username = ? AND password = ?";
             SQL_obj.set_query(checkSql);
             pstmt = SQL_obj.getPreparedStatement();
@@ -349,6 +421,40 @@ public class news_app_controller extends fundamental_tools implements Initializa
         }
     }
 
+    //------User Page Functions------
+
+    private final String username = readSessionCredentials()[0];
+
+    @FXML
+    Button clear_articles_btn;
+    @FXML
+    Button view_liked_articles_btn;
+
+    public void clear_details(){
+        clear_articles_btn.setDisable(false);
+        String filePath = username+"_liked_articles.txt";
+        try (FileWriter writer = new FileWriter(filePath, false)) {
+            writer.write("");
+            showAlert("File CLeared","Contents of the previously liked articles successfully cleared", Alert.AlertType.INFORMATION);
+            clear_articles_btn.setDisable(true);
+        } catch (IOException e) {
+            showAlert("File Error","An error occurred while clearing the file: " + e.getMessage(), Alert.AlertType.INFORMATION);
+        }
+    }
+
+    public void print_liked_articles(){
+        view_liked_articles_btn.setDisable(false);
+        String filePath = username+"_liked_articles.txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            view_liked_articles_btn.setDisable(true);
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading the file: " + e.getMessage());
+        }
+    }
 
     //------Display User Details function to present previously liked articles------
 
@@ -357,8 +463,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
     public void print_user_details() {
         String[] sessionData = readSessionCredentials();
-        if (sessionData == null || sessionData[0] == null || sessionData[1] == null) {
-            showAlert("Error", "Session not found. Please login first.", Alert.AlertType.ERROR);
+        if (validate_session(sessionData)) {
+            see_details_btn.setDisable(true);
             return;
         }
 
@@ -526,6 +632,11 @@ public class news_app_controller extends fundamental_tools implements Initializa
     }
 
     public void like_article(String description, String userName) {
+        String[] sessionData = readSessionCredentials();
+        if (validate_session(sessionData)) {
+            like_btn.setDisable(true);
+            return;
+        }
         showAlert("Article Liked", "The article was liked!", Alert.AlertType.INFORMATION);
         like_btn.setDisable(true);
 

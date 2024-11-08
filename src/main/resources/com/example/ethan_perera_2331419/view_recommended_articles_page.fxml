@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.web.WebView?>
 
-<AnchorPane prefHeight="400.0" prefWidth="964.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.news_app_controller">
+<AnchorPane prefHeight="400.0" prefWidth="964.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.recommended_article_viewer_controller">
    <children>
       <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="964.0">
          <menus>
@@ -21,16 +21,15 @@
             </Menu>
          </menus>
       </MenuBar>
-      <Label fx:id="article_header" alignment="TOP_LEFT" layoutX="193.0" layoutY="62.0" prefHeight="62.0" prefWidth="366.0" text="Header" wrapText="true" />
-      <Label fx:id="article_category" alignment="TOP_LEFT" layoutX="21.0" layoutY="62.0" prefHeight="35.0" prefWidth="144.0" text="Category" wrapText="true" />
-      <Button layoutX="49.0" layoutY="180.0" mnemonicParsing="false" onAction="#next_article" text="Next Article" />
+      <Label fx:id="recommended_article_header" alignment="TOP_LEFT" layoutX="193.0" layoutY="62.0" prefHeight="62.0" prefWidth="366.0" text="Header" wrapText="true" />
+      <Label fx:id="recommended_article_category" alignment="TOP_LEFT" layoutX="21.0" layoutY="62.0" prefHeight="35.0" prefWidth="144.0" text="Category" wrapText="true" />
+      <Button layoutX="49.0" layoutY="180.0" mnemonicParsing="false" onAction="#recommended_next_article" text="Next Article" />
       <Button layoutX="43.0" layoutY="245.0" mnemonicParsing="false" onAction="#switchToHome_Not_Validated" text="Previous Page" />
-      <Hyperlink fx:id="article_link" layoutX="191.0" layoutY="323.0" prefHeight="62.0" prefWidth="378.0" text="Click Me to get the link to the article" wrapText="true" />
-      <ScrollPane fx:id="article_content" layoutX="191.0" layoutY="159.0" prefHeight="171.0" prefWidth="366.0" />
-      <Label fx:id="article_release_date" alignment="TOP_LEFT" layoutX="21.0" layoutY="281.0" prefHeight="84.0" prefWidth="134.0" text="release_date" wrapText="true" />
-      <Button fx:id="like_btn" layoutX="520.0" layoutY="341.0" mnemonicParsing="false" text="Like" textAlignment="CENTER" wrapText="true" />
-      <Button layoutX="39.0" layoutY="212.0" mnemonicParsing="false" onAction="#previous_article" text="Previous Article" />
-      <WebView fx:id="news_webview" layoutX="569.0" layoutY="54.0" prefHeight="326.0" prefWidth="388.0" />
+      <Hyperlink fx:id="recommended_article_link" layoutX="191.0" layoutY="323.0" prefHeight="62.0" prefWidth="378.0" text="Click Me to get the link to the article" wrapText="true" />
+      <ScrollPane fx:id="recommended_article_content" layoutX="191.0" layoutY="159.0" prefHeight="171.0" prefWidth="366.0" />
+      <Label fx:id="recommended_article_release_date" alignment="TOP_LEFT" layoutX="21.0" layoutY="281.0" prefHeight="84.0" prefWidth="134.0" text="release_date" wrapText="true" />
+      <Button layoutX="39.0" layoutY="212.0" mnemonicParsing="false" onAction="#recommended_previous_article" text="Previous Article" />
+      <WebView fx:id="recommended_news_webview" layoutX="569.0" layoutY="54.0" prefHeight="326.0" prefWidth="388.0" />
       <Button layoutX="570.0" layoutY="27.0" mnemonicParsing="false" onAction="#reload_page" text="Reload Page" />
    </children>
 </AnchorPane>

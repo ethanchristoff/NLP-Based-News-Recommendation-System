@@ -6,6 +6,7 @@ module com.example.ethan_perera_2331419 {
     requires org.apache.opennlp.tools;
     requires java.net.http;
     requires javafx.web;
+    requires org.json;
 
 
     opens com.example.ethan_perera_2331419 to javafx.fxml;

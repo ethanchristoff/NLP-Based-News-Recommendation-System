@@ -55,4 +55,50 @@ public class fundamental_tools {
         }
     }
 
+    public String[] validatePassword(String password) {
+        String[] result = new String[2];
+        int minLength = 3;
+        int maxLength = 12;
+        int minNumericValues = 3;
+
+        if (password.length() < minLength || password.length() > maxLength) {
+            result[0] = "false";
+            result[1] = "The password length must be greater than " + minLength +
+                    " and less than or equal to " + maxLength;
+            return result;
+        }
+
+        int numericValuesCount = 0;
+        boolean hasSpecialChar = false;
+
+        for (int i = 0; i < password.length(); i++) {
+            char c = password.charAt(i);
+            if (Character.isDigit(c)) {
+                numericValuesCount++;
+            } else if (!Character.isLetterOrDigit(c)) {
+                hasSpecialChar = true;
+            }
+        }
+
+        if (numericValuesCount < minNumericValues) {
+            result[0] = "false";
+            result[1] = "The password must contain at least " + minNumericValues + " numbers.";
+        } else if (!hasSpecialChar) {
+            result[0] = "false";
+            result[1] = "The password must contain at least one special character.";
+        } else {
+            result[0] = "true";
+            result[1] = "Password is valid.";
+        }
+
+        return result;
+    }
+
+    public boolean validate_session(String[] sessionData){
+        if (sessionData == null || sessionData[0] == null || sessionData[1] == null) {
+            showAlert("Error", "Session not found. Please login first.", Alert.AlertType.ERROR);
+            return true;
+        }else
+            return false;
+    }
 }
