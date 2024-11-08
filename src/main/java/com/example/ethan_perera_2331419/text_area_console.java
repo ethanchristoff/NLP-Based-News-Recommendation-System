@@ -25,7 +25,7 @@ public class text_area_console extends Application {
     private TextArea txtArea;
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("text_area_test.fxml")));
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home_page.fxml")));
         //Console myConsole = new Console();
         Scene scene = new Scene(root);
         stage.setScene(scene);

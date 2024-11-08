@@ -10,12 +10,17 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class news_api_content {
+    private static String category;
+    public news_api_content(String category){
+        this.category = category;
+    }
     private static final String API_KEY = System.getenv("apikey");
-    private static final String API_URL = "https://newsapi.org/v2/top-headlines?country=us&apiKey=" + API_KEY;
+    //private static final String API_URL = "https://newsapi.org/v2/top-headlines?country=us&category=" + category + "&apiKey=" + API_KEY;
 
-    public JsonArray test_news_api() {
+    private static final String API_URL = "https://newsapi.org/v2/everything?q=USA&apiKey=" + API_KEY;
+
+    public JsonArray get_news_api() {
         try {
-            // Create a URL object with the API URL
             URL url = new URL(API_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -30,11 +35,9 @@ public class news_api_content {
                     content.append(inputLine);
                 }
 
-                // Close the connections
                 in.close();
                 connection.disconnect();
 
-                // Parse the JSON response
                 JsonObject jsonObject = JsonParser.parseString(content.toString()).getAsJsonObject();
 
                 return jsonObject.getAsJsonArray("articles");
