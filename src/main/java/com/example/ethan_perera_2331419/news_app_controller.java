@@ -18,9 +18,6 @@ import javafx.fxml.Initializable;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.sql.PreparedStatement;
@@ -35,7 +32,6 @@ class ConsoleRedirect {
 
     public ConsoleRedirect(TextArea textArea) {
         this.textArea = textArea;
-        PrintStream consoleStream = System.out;
         OutputStream out = new OutputStream() {
             @Override
             public void write(int b) {
@@ -64,6 +60,11 @@ class ConsoleRedirect {
 
 public class news_app_controller extends fundamental_tools implements Initializable{
 
+    permanant_details new_user = new permanant_details();
+    permanant_details temp_creds = new permanant_details();
+    private String global_username = "";
+    private boolean is_temp_user;
+
     public static TextArea staticTxtArea;
     private Stage stage;
     private Scene scene;
@@ -82,6 +83,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
     public void switchToHome_Validated(ActionEvent event) {
         String inputUsername = username_input.getText();
         String inputPassword = password_input.getText();
+
+        new_user.getInstance().setGlobalDetails(inputUsername);
 
         if (Objects.equals(inputUsername, "") || Objects.equals(inputPassword, "")) {
             showAlert("Error", "Input Fields Empty!", Alert.AlertType.ERROR);
@@ -109,6 +112,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
     }
 
     public void switchToHome_Temp_Creds(ActionEvent event) throws IOException{
+        temp_creds.getInstance().setGlobalDetails("true");
         root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home_page.fxml")));
 
         if (root == null) {
@@ -213,7 +217,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
     public void switchToUserPage(ActionEvent event) throws IOException{
 
-        String[] sessionData = readSessionCredentials();
+        String[] sessionData = readSessionCredentials(global_username);
         if (validate_session(sessionData)) {
             personal_details_btn.setDisable(true);
             return;
@@ -233,30 +237,34 @@ public class news_app_controller extends fundamental_tools implements Initializa
     }
 
     public void switchToReommendedArticleViewer(ActionEvent event) throws IOException{
-
-        String[] sessionData = readSessionCredentials();
+        String[] sessionData = readSessionCredentials(global_username);
         if (validate_session(sessionData)) {
             recommended_articles_btn.setDisable(true);
             return;
         }
+        if (file_exists(global_username+"_liked_articles.txt")) {
+            root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("view_recommended_articles_page.fxml")));
 
-        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("view_recommended_articles_page.fxml")));
+            if (root == null) {
+                showAlert("Error", "Failed to load Recommended Article Viewer page!", Alert.AlertType.ERROR);
+                return;
+            }
 
-        if (root == null) {
-            showAlert("Error", "Failed to load Recommended Article Viewer page!", Alert.AlertType.ERROR);
-            return;
+            stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            scene = new Scene(root);
+            stage.setScene(scene);
+            stage.show();
+        } else {
+            recommended_articles_btn.setDisable(true);
+            showAlert("File Not Found","Ensure that you've liked some articles first before you run this!", Alert.AlertType.INFORMATION);
         }
 
-        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
     }
 
-    //------Exit Program---
+    //------Exit Program------
 
     public void exit_program() {
-        clearSessionCredentials();
+        clearSessionCredentials(global_username);
         System.exit(1);
     }
 
@@ -268,6 +276,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
     private String sql;
 
     private boolean authenticateUser(String inputUsername, String inputPassword) {
+        SQL_obj.open_connection();
 
         sql = "SELECT username, password FROM users WHERE username = ? AND password = ?";
         SQL_obj.set_query(sql);
@@ -423,8 +432,6 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
     //------User Page Functions------
 
-    private final String username = readSessionCredentials()[0];
-
     @FXML
     Button clear_articles_btn;
     @FXML
@@ -432,7 +439,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
     public void clear_details(){
         clear_articles_btn.setDisable(false);
-        String filePath = username+"_liked_articles.txt";
+        String filePath = global_username+"_liked_articles.txt";
         try (FileWriter writer = new FileWriter(filePath, false)) {
             writer.write("");
             showAlert("File CLeared","Contents of the previously liked articles successfully cleared", Alert.AlertType.INFORMATION);
@@ -444,7 +451,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
     public void print_liked_articles(){
         view_liked_articles_btn.setDisable(false);
-        String filePath = username+"_liked_articles.txt";
+        String filePath = global_username+"_liked_articles.txt";
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -462,7 +469,12 @@ public class news_app_controller extends fundamental_tools implements Initializa
     Button see_details_btn;
 
     public void print_user_details() {
-        String[] sessionData = readSessionCredentials();
+        if (is_temp_user){
+            showAlert("Temp User","Ensure that you login to use this feature", Alert.AlertType.INFORMATION);
+            see_details_btn.setDisable(true);
+            return;
+        }
+        String[] sessionData = readSessionCredentials(global_username);
         if (validate_session(sessionData)) {
             see_details_btn.setDisable(true);
             return;
@@ -525,7 +537,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
         pstmt = SQL_obj.getPreparedStatement();
 
         try {
-            String username = readSessionCredentials()[0];
+            String username = readSessionCredentials(global_username)[0];
 
             pstmt.setString(1, url);
             pstmt.setString(2, username);
@@ -627,12 +639,12 @@ public class news_app_controller extends fundamental_tools implements Initializa
     }
 
     private void setupLikeButtonAction(String description) {
-        like_btn.setOnAction(event -> like_article(description, readSessionCredentials()[0]));// Inputs username and description of article that was liked
+        like_btn.setOnAction(event -> like_article(description, readSessionCredentials(global_username)[0]));// Inputs username and description of article that was liked
         like_btn.setDisable(false);
     }
 
     public void like_article(String description, String userName) {
-        String[] sessionData = readSessionCredentials();
+        String[] sessionData = readSessionCredentials(global_username);
         if (validate_session(sessionData)) {
             like_btn.setDisable(true);
             return;
@@ -657,6 +669,9 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        global_username = new_user.getInstance().getGlobalDetails();
+        is_temp_user = Objects.equals(temp_creds.getInstance().getGlobalDetails(), "true") ? true : false;
+        System.out.println(global_username);
         if (filtered_articles_choicebox == (null)){
             System.err.println("ChoiceBox not yet initialized");
         }else

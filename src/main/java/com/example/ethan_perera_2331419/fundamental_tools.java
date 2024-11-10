@@ -5,6 +5,7 @@ import javafx.scene.control.Alert;
 import java.io.*;
 
 public class fundamental_tools {
+
     public void showAlert(String title, String content, Alert.AlertType alertType) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
@@ -13,7 +14,7 @@ public class fundamental_tools {
     }
 
     public void saveSessionCredentials(String username, String password) {
-        String filename = "session_logs.txt";
+        String filename = username+"_session_logs.txt";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write("username=" + username + "\n");
             writer.write("password=" + password + "\n");
@@ -24,8 +25,8 @@ public class fundamental_tools {
         }
     }
 
-    public void clearSessionCredentials() {
-        String filename = "session_logs.txt";
+    public void clearSessionCredentials(String username) {
+        String filename = username+"_session_logs.txt";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write("");
             System.out.println("Session log cleared.");
@@ -35,8 +36,8 @@ public class fundamental_tools {
         }
     }
 
-    public String[] readSessionCredentials() {
-        String filename = "session_logs.txt";
+    public String[] readSessionCredentials(String username) {
+        String filename = username+"_session_logs.txt";
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line;
             String[] sessionData = new String[2];  // [username, password]
@@ -100,5 +101,10 @@ public class fundamental_tools {
             return true;
         }else
             return false;
+    }
+
+    public boolean file_exists(String filePath){
+        File file = new File(filePath);
+        return file.exists() && file.isFile() && file.length() > 0;
     }
 }

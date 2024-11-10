@@ -74,10 +74,4 @@ class OllamaContent {
 
         return sendRequest();
     }
-
-    public static void main(String[] args) throws IOException {
-        OllamaContent olc = new OllamaContent();
-        String response = olc.getRespones("ethan_perera_liked_articles.txt");
-        System.out.println(response);
-    }
 }

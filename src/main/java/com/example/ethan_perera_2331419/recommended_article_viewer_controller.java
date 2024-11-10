@@ -24,6 +24,10 @@ import javafx.scene.web.WebView;
 
 public class recommended_article_viewer_controller extends fundamental_tools implements Initializable{
 
+    permanant_details new_user = new permanant_details();
+
+    private String username = new_user.getInstance().getGlobalDetails();
+
     private Stage stage;
     private Scene scene;
     private Parent root;
@@ -48,7 +52,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
     //------Exit Program------
 
     public void exit_program() {
-        clearSessionCredentials();
+        clearSessionCredentials(username);
         System.exit(1);
     }
 
@@ -60,7 +64,6 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
     private final JsonArray articles = news_obj.readJsonFile();// JsonArray for news articles
     private final Web_Content web_instance = new Web_Content();
     private int count;
-    private final String username = readSessionCredentials()[0];
     private String summarized_genre;
 
     //------FXML loaders------
@@ -80,7 +83,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
 
     //------Main Content------
 
-    private void displayRecommendedArticles(int index, boolean forward) throws IOException {
+    private void displayRecommendedArticles(int index, boolean forward) {
         String[] preferred_genre;
         preferred_genre = switch (summarized_genre.toLowerCase()) {
             case "society & culture" -> new String[]{
