@@ -185,7 +185,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         try {
-            summarized_genre = genre_specifier.getRespones(username + "_liked_articles.txt");// Ollama initialized here and genre summarized before page loaded
+            summarized_genre = genre_specifier.getResponse(username + "_liked_articles.txt");// Ollama initialized here and genre summarized before page loaded
             showAlert("Preferred Genre","Your preferred Genre is: '"+summarized_genre+"'", Alert.AlertType.INFORMATION);
         } catch (IOException e) {
             throw new RuntimeException(e);

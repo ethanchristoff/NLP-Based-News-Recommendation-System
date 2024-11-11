@@ -459,7 +459,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
             }
             view_liked_articles_btn.setDisable(true);
         } catch (IOException e) {
-            System.out.println("An error occurred while reading the file: " + e.getMessage());
+            showAlert("File Error","There was an issue getting your liked articles, maybe like a couple and come back?", Alert.AlertType.INFORMATION);
+            view_liked_articles_btn.setDisable(true);
         }
     }
 
@@ -670,8 +671,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         global_username = new_user.getInstance().getGlobalDetails();
-        is_temp_user = Objects.equals(temp_creds.getInstance().getGlobalDetails(), "true") ? true : false;
-        System.out.println(global_username);
+        is_temp_user = Objects.equals(temp_creds.getInstance().getGlobalDetails(), "true");
         if (filtered_articles_choicebox == (null)){
             System.err.println("ChoiceBox not yet initialized");
         }else
