@@ -17,6 +17,8 @@ import javafx.fxml.Initializable;
 
 import java.io.*;
 import java.net.URL;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -157,9 +159,33 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         });
     }
 
+    private final String global_username = new_user.getInstance().getGlobalDetails();
+
+    public void add_to_preferred_genre(String preferred_genre) {
+        String sql = " UPDATE users SET Preferred_Genres = CONCAT(IFNULL(Preferred_Genres, ''), ?, ', ') WHERE username = ? ";
+        SQL_obj.set_query(sql);
+        PreparedStatement pstmt = SQL_obj.getPreparedStatement();
+
+        try {
+            String username = readSessionCredentials(global_username)[0];
+
+            pstmt.setString(1, preferred_genre);
+            pstmt.setString(2, username);
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+        } finally {
+            SQL_obj.closeResources();
+            SQL_obj.close_connection();
+        }
+    }
+
     //------Recommended Article Switcher------
 
-    public void recommended_next_article() throws IOException {
+    public void recommended_next_article() {
         if (!articles.isEmpty()) {
             count = (count + 1) % articles.size();
             displayRecommendedArticles(count, true);
@@ -169,7 +195,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         }
     }
 
-    public void recommended_previous_article() throws IOException {
+    public void recommended_previous_article() {
         if (!articles.isEmpty()) {
             count = (count - 1 + articles.size()) % articles.size();
             displayRecommendedArticles(count, false); // Backward direction
@@ -177,6 +203,8 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
             showAlert("No Articles", "No articles to display.", Alert.AlertType.INFORMATION);
         }
     }
+
+    //------Web Page Re-Loader------
 
     public void reload_page(){
         web_instance.reload_page();
@@ -186,6 +214,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
     public void initialize(URL url, ResourceBundle rb) {
         try {
             summarized_genre = genre_specifier.getResponse(username + "_liked_articles.txt");// Ollama initialized here and genre summarized before page loaded
+            add_to_preferred_genre(summarized_genre);
             showAlert("Preferred Genre","Your preferred Genre is: '"+summarized_genre+"'", Alert.AlertType.INFORMATION);
         } catch (IOException e) {
             throw new RuntimeException(e);

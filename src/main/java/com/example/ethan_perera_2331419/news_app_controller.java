@@ -481,7 +481,7 @@ public class news_app_controller extends fundamental_tools implements Initializa
             return;
         }
 
-        sql = "SELECT Read_Articles, Liked_Articles, Preferred_Genres  FROM users WHERE username = ? AND password = ?";
+        sql = "SELECT Read_Articles, Preferred_Genres  FROM users WHERE username = ? AND password = ?";
         SQL_obj.set_query(sql);
         pstmt = SQL_obj.getPreparedStatement();
 
@@ -494,9 +494,8 @@ public class news_app_controller extends fundamental_tools implements Initializa
 
             if (rs.next()) {
                 String read_articles = rs.getString("Read_Articles");
-                String liked_articles = rs.getString("Liked_Articles");
                 String preferred_genres = rs.getString("Preferred_Genres");
-                System.out.printf("Read Articles: %s\nLiked Articles: %s\nPreferred Genres: %s",read_articles,liked_articles,preferred_genres);
+                System.out.printf("Read Articles: %s\nPreferred Genres: %s\nTo view your liked articles view your personal details page!",read_articles,preferred_genres);
             } else {
                 showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
             }
