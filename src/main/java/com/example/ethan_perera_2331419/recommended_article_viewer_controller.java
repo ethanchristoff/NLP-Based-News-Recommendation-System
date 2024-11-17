@@ -19,22 +19,42 @@ import java.io.*;
 import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import javafx.scene.web.WebView;
 
 public class recommended_article_viewer_controller extends fundamental_tools implements Initializable{
-
-    permanant_details new_user = new permanant_details();
-
+    //------Variable Initialization------
+    private store_details new_user = new store_details();
     private String username = new_user.getInstance().getGlobalDetails();
-
     private Stage stage;
     private Scene scene;
     private Parent root;
+    private int count;
+    private String summarized_genre;
+    private final String global_username = new_user.getInstance().getGlobalDetails();
 
+    //------Object Initialization------
+    private final OllamaDriver genre_specifier = new OllamaDriver();
+    private final SQL_Driver SQL_obj = new SQL_Driver();
+    private final JSON_Reader news_obj = new JSON_Reader();
+    private final JsonArray articles = news_obj.readJsonFile();
+    private final Web_Content web_instance = new Web_Content();
 
+    //------FXML loaders------
+
+    @FXML
+    Label recommended_article_header;
+    @FXML
+    Label recommended_article_category;
+    @FXML
+    Label recommended_article_release_date;
+    @FXML
+    ScrollPane recommended_article_content;
+    @FXML
+    WebView recommended_news_webview;
+    @FXML
+    Hyperlink recommended_article_link;
     //------Scene Switchers------
 
     public void switchToHome_Not_Validated(ActionEvent event) throws IOException{
@@ -58,36 +78,15 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         System.exit(1);
     }
 
-    //------Variable Initialization------
-
-    private final OllamaContent genre_specifier = new OllamaContent();
-    private final SQL_Content SQL_obj = new SQL_Content();
-    private final JSON_Reader news_obj = new JSON_Reader();// Instantiated object for JSON File reader
-    private final JsonArray articles = news_obj.readJsonFile();// JsonArray for news articles
-    private final Web_Content web_instance = new Web_Content();
-    private int count;
-    private String summarized_genre;
-
-    //------FXML loaders------
-
-    @FXML
-    Label recommended_article_header;
-    @FXML
-    Label recommended_article_category;
-    @FXML
-    Label recommended_article_release_date;
-    @FXML
-    ScrollPane recommended_article_content;
-    @FXML
-    WebView recommended_news_webview;
-    @FXML
-    Hyperlink recommended_article_link;
-
     //------Main Content------
 
-    private void displayRecommendedArticles(int index, boolean forward) {
-        String[] preferred_genre;
-        preferred_genre = switch (summarized_genre.toLowerCase()) {
+    public void displayRecommendedArticles(int index, boolean forward) {
+        String fileName = "user_cache/" + username + "_skipped_articles.txt";
+        String[] skippedHeadlines = readHeadersFromTextFile(fileName);
+
+        Set<String> skippedHeadlinesSet = new HashSet<>(Arrays.asList(skippedHeadlines));
+
+        String[] preferred_genre = switch (summarized_genre.toLowerCase()) {
             case "society & culture" -> new String[]{
                     "LATINO VOICES", "BLACK VOICES", "QUEER VOICES", "STYLE & BEAUTY",
                     "STYLE", "CULTURE & ARTS", "ARTS", "ARTS & CULTURE",
@@ -106,7 +105,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
                     "COMEDY", "WEIRD NEWS", "ENTERTAINMENT", "SPORTS",
                     "BUSINESS", "MONEY", "COLLEGE", "FIFTY", "RELIGION"
             };
-            default -> new String[]{}; // Empties array for unrecognized genre
+            default -> new String[]{};
         };
 
         int originalIndex = index;
@@ -114,6 +113,12 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         do {
             JsonObject article = articles.get(index).getAsJsonObject();
             String category = article.get("category").getAsString();
+            String headline = article.get("headline").getAsString();
+
+            if (skippedHeadlinesSet.contains(headline)) {
+                index = forward ? (index + 1) % articles.size() : (index - 1 + articles.size()) % articles.size();
+                continue;
+            }
 
             for (String genre : preferred_genre) {
                 if (category.equalsIgnoreCase(genre)) {
@@ -123,10 +128,11 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
             }
 
             index = forward ? (index + 1) % articles.size() : (index - 1 + articles.size()) % articles.size();
-        } while (index != originalIndex); // Loop until it has cycled through all articles
+        } while (index != originalIndex);
 
         showAlert("No Articles", "No articles available for the selected filter.", Alert.AlertType.INFORMATION);
     }
+
 
     private void updateRecommendedArticleUI(JsonObject article) {
         recommended_article_header.setText(article.get("headline").getAsString());
@@ -159,10 +165,8 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         });
     }
 
-    private final String global_username = new_user.getInstance().getGlobalDetails();
-
-    public void add_to_preferred_genre(String preferred_genre) {
-        String sql = " UPDATE users SET Preferred_Genres = CONCAT(IFNULL(Preferred_Genres, ''), ?, ', ') WHERE username = ? ";
+    public void set_preferred_genre(String preferred_genre) {
+        String sql = "UPDATE users SET Preferred_Genres = ? WHERE username = ?";
         SQL_obj.set_query(sql);
         PreparedStatement pstmt = SQL_obj.getPreparedStatement();
 
@@ -182,6 +186,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
             SQL_obj.close_connection();
         }
     }
+
 
     //------Recommended Article Switcher------
 
@@ -213,8 +218,8 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         try {
-            summarized_genre = genre_specifier.getResponse(username + "_liked_articles.txt");// Ollama initialized here and genre summarized before page loaded
-            add_to_preferred_genre(summarized_genre);
+            summarized_genre = genre_specifier.getResponse("user_cache/"+username + "_liked_articles.txt");// Ollama initialized here and genre summarized before page loaded
+            set_preferred_genre(summarized_genre);
             showAlert("Preferred Genre","Your preferred Genre is: '"+summarized_genre+"'", Alert.AlertType.INFORMATION);
         } catch (IOException e) {
             throw new RuntimeException(e);

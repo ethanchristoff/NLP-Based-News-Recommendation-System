@@ -1,14 +1,14 @@
 package com.example.ethan_perera_2331419;
 
-public class permanant_details {
-    private static permanant_details instance;
+public class store_details {
+    private static store_details instance;
     private String globalDetail = "Null";
 
-    permanant_details() {}
+    store_details() {}
 
-    public static permanant_details getInstance() {
+    public static store_details getInstance() {
         if (instance == null) {
-            instance = new permanant_details();
+            instance = new store_details();
         }
         return instance;
     }

@@ -26,14 +26,11 @@ public class text_area_console extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home_page.fxml")));
-        //Console myConsole = new Console();
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
-        txtArea = news_app_controller.staticTxtArea;
-        //Thread execution for reading output stream
+        txtArea = ConsoleRedirect.staticTxtArea;
         executeReaderThreads();
-        //Thread closing on stag close event
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent e) {

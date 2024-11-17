@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
-class OllamaContent {
+class OllamaDriver {
 
     private final String constraints = "(Just select one of the genres, there is no need for an explanation or any other text whatsoever, and give your answer) Which of the following genres is the given text: Society & Culture, News & Current Events, Lifestyle & Well-being, Entertainment & Leisure";
 
