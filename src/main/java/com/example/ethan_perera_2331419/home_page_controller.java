@@ -1,11 +1,14 @@
 package com.example.ethan_perera_2331419;
 
+import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.services.fundamental_tools;
+import com.example.ethan_perera_2331419.services.store_details;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.Label;
 
 import java.io.IOException;
 import java.net.URL;
@@ -18,13 +21,15 @@ import java.util.ResourceBundle;
 public class home_page_controller extends fundamental_tools implements Initializable {
     //------FXML Loaders------
     @FXML
-    private TextArea text_output_area;
+    private Label text_output_area;
     @FXML
     private Button see_details_btn;
     @FXML
     private Button recommended_articles_btn;
     @FXML
     private Button personal_details_btn;
+    @FXML
+    private Label logged_in_user;
 
     //------Variable Loaders------
     private String global_username = "";
@@ -93,7 +98,7 @@ public class home_page_controller extends fundamental_tools implements Initializ
             if (rs.next()) {
                 String read_articles = rs.getString("Read_Articles");
                 String preferred_genres = rs.getString("Preferred_Genres");
-                System.out.printf("Most Recently Liked Article: %s\nPreferred Genres: %s\n\nTo view your liked articles view your personal details page!",read_articles,preferred_genres);
+                text_output_area.setText("Most Recently Read Article: "+read_articles+"\nPreferred Genres: "+preferred_genres+"\n\nTo view your liked articles view your personal details page!");
             } else {
                 showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
             }
@@ -114,15 +119,13 @@ public class home_page_controller extends fundamental_tools implements Initializ
         System.exit(1);
     }
     @Override
-    public void initialize(URL url, ResourceBundle rb){
+    public void initialize(URL url, ResourceBundle rb) {
         global_username = current_user.getInstance().getGlobalDetails();
         is_temp_user = Objects.equals(temp_creds.getInstance().getGlobalDetails(), "temp");
-        if (text_output_area != null) {
-            text_output_area.clear();
-            TextArea staticTxtArea = text_output_area;
-            new ConsoleRedirect(text_output_area);
-        } else {
-            System.err.println("Text output area is not initialized!");
+        if (!is_temp_user) {
+            logged_in_user.setText("Logged in as: " + global_username);
+        }else{
+            logged_in_user.setText("Logged in as temp user");
         }
     }
 }

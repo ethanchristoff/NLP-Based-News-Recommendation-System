@@ -1,10 +1,10 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.services;
 
 public class store_details {
     private static store_details instance;
     private String globalDetail = "Null";
 
-    store_details() {}
+    public store_details() {}
 
     public static store_details getInstance() {
         if (instance == null) {

@@ -1,10 +1,9 @@
 package com.example.ethan_perera_2331419;
 
+import com.example.ethan_perera_2331419.services.fundamental_tools;
 import org.junit.Test;
 
 import java.util.Objects;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class password_validation_test {
 

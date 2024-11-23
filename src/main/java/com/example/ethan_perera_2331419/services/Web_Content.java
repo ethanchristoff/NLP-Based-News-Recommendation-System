@@ -1,4 +1,4 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.services;
 
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;

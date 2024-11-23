@@ -1,5 +1,6 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.services;
 
+import com.example.ethan_perera_2331419.db.SQL_Driver;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -226,5 +227,11 @@ public class fundamental_tools {
             SQL_obj.closeResources();
             SQL_obj.close_connection();
         }
+    }
+
+    public static void runInBackground(Runnable task) {
+        Thread backgroundTask = new Thread(task);
+        backgroundTask.setDaemon(true);
+        backgroundTask.start();
     }
 }

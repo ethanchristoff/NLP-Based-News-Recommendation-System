@@ -1,11 +1,13 @@
 package com.example.ethan_perera_2331419;
 
+import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.services.fundamental_tools;
+import com.example.ethan_perera_2331419.services.store_details;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -21,7 +23,7 @@ public class user_page_controller extends fundamental_tools implements Initializ
     @FXML
     private Button view_liked_articles_btn;
     @FXML
-    private TextArea text_output_area;
+    private ScrollPane user_details_content;
     //------Variable Loaders------
     public static TextArea staticTxtArea;
     private String global_username = "";
@@ -49,12 +51,23 @@ public class user_page_controller extends fundamental_tools implements Initializ
         view_liked_articles_btn.setDisable(false);
         String filePath = "user_cache/"+global_username+"_liked_articles.txt";
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            StringBuilder content = new StringBuilder();
             String line;
+
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                content.append(line).append("\n");
             }
+
+            VBox articleBox = new VBox(10); // Sets the spacing set directly in constructor
+            Label contentLabel = new Label(content.toString());
+            contentLabel.setWrapText(true);
+
+            articleBox.getChildren().add(contentLabel);
+            user_details_content.setContent(articleBox);
+            user_details_content.setFitToWidth(true);
+
             view_liked_articles_btn.setDisable(true);
-        } catch (IOException e) {
+    } catch (IOException e) {
             showAlert("File Error","There was an issue getting your liked articles, maybe like a couple and come back?", Alert.AlertType.INFORMATION);
             view_liked_articles_btn.setDisable(true);
         }
@@ -68,12 +81,5 @@ public class user_page_controller extends fundamental_tools implements Initializ
     @Override
     public void initialize(URL url, ResourceBundle rb){
         global_username = current_user.getInstance().getGlobalDetails();
-        if (text_output_area != null) {
-            text_output_area.clear(); // Ensures that warnings are cleared when the page is loaded
-            staticTxtArea = text_output_area;
-            new ConsoleRedirect(text_output_area);
-        } else {
-            System.err.println("Text output area is not initialized!");
-        }
     }
 }

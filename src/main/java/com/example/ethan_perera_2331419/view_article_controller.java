@@ -1,5 +1,10 @@
 package com.example.ethan_perera_2331419;
 
+import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.services.JSON_Reader;
+import com.example.ethan_perera_2331419.services.Web_Content;
+import com.example.ethan_perera_2331419.services.fundamental_tools;
+import com.example.ethan_perera_2331419.services.store_details;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import javafx.event.ActionEvent;
@@ -59,7 +64,7 @@ public class view_article_controller extends fundamental_tools implements Initia
     }
     //------Controller Functions------
     public void add_to_read(String url) {
-        sql = " UPDATE users SET Read_Articles = CONCAT(IFNULL(Read_Articles, ''), ?, ', ') WHERE username = ? ";
+        sql = "UPDATE users SET Read_Articles = ? WHERE username = ?";
         SQL_obj.set_query(sql);
         pstmt = SQL_obj.getPreparedStatement();
 
@@ -180,7 +185,7 @@ public class view_article_controller extends fundamental_tools implements Initia
             Clipboard clipboard = Clipboard.getSystemClipboard();
             clipboard.setContent(new ClipboardContent() {{ putString(url); }});
             showAlert("Information", "Link copied!", Alert.AlertType.INFORMATION);
-            add_to_read(url);
+            runInBackground(()->add_to_read(url));
         });
     }
 
@@ -191,15 +196,17 @@ public class view_article_controller extends fundamental_tools implements Initia
 
     public void like_article(String description, String userName) {
         if (is_temp_user) {
-            showAlert("Temp User","Ensure that you login to use this feature", Alert.AlertType.ERROR);
+            showAlert("Temp User", "Ensure that you login to use this feature", Alert.AlertType.ERROR);
             like_btn.setDisable(true);
             return;
         }
+
         showAlert("Article Liked", "The article was liked!", Alert.AlertType.INFORMATION);
         like_btn.setDisable(true);
 
-        String fileName = "user_cache/"+userName + "_liked_articles.txt";
-        write_to_text_file(fileName,description);
+        String fileName = "user_cache/" + userName + "_liked_articles.txt";
+
+        runInBackground(()->write_to_text_file(fileName, description));
     }
 
     public void reload_page(){

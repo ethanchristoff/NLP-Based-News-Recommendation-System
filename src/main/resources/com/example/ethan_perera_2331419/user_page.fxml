@@ -5,7 +5,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.user_page_controller">
@@ -23,7 +23,7 @@
       <Label layoutX="14.0" layoutY="95.0" text="View Liked Articles:" />
       <Button fx:id="clear_articles_btn" layoutX="134.0" layoutY="40.0" mnemonicParsing="false" onAction="#clear_details" text="yes" />
       <Button fx:id="view_liked_articles_btn" layoutX="131.0" layoutY="91.0" mnemonicParsing="false" onAction="#print_liked_articles" text="view" />
-      <TextArea fx:id="text_output_area" editable="false" layoutX="260.0" layoutY="40.0" prefHeight="342.0" prefWidth="302.0" />
       <Button layoutX="14.0" layoutY="356.0" mnemonicParsing="false" onAction="#switchToHome_Not_Validated" text="Previous Page" />
+      <ScrollPane fx:id="user_details_content" layoutX="219.0" layoutY="40.0" prefHeight="343.0" prefWidth="366.0" />
    </children>
 </AnchorPane>

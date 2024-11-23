@@ -1,5 +1,11 @@
 package com.example.ethan_perera_2331419;
 
+import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.recommendation_engine.OllamaDriver;
+import com.example.ethan_perera_2331419.services.JSON_Reader;
+import com.example.ethan_perera_2331419.services.Web_Content;
+import com.example.ethan_perera_2331419.services.fundamental_tools;
+import com.example.ethan_perera_2331419.services.store_details;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import javafx.event.ActionEvent;
@@ -20,13 +26,13 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 import javafx.scene.web.WebView;
 
 public class recommended_article_viewer_controller extends fundamental_tools implements Initializable{
     //------Variable Initialization------
     private store_details new_user = new store_details();
-    private String username = new_user.getInstance().getGlobalDetails();
     private Stage stage;
     private Scene scene;
     private Parent root;
@@ -74,15 +80,21 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
     //------Exit Program------
 
     public void exit_program() {
-        clearSessionCredentials(username);
+        remove_from_logged_in_users(global_username,SQL_obj);
+        clearSessionCredentials(global_username);
         System.exit(1);
     }
 
     //------Main Content------
 
     public void displayRecommendedArticles(int index, boolean forward) {
-        String fileName = "user_cache/" + username + "_skipped_articles.txt";
-        String[] skippedHeadlines = readHeadersFromTextFile(fileName);
+        String fileName = "user_cache/" + global_username + "_skipped_articles.txt";
+        String[] skippedHeadlines;
+        if (file_exists(fileName)){
+            skippedHeadlines = readHeadersFromTextFile(fileName);
+        }else{
+            skippedHeadlines = new String[]{};// Initiate an empty array
+        }
 
         Set<String> skippedHeadlinesSet = new HashSet<>(Arrays.asList(skippedHeadlines));
 
@@ -217,13 +229,32 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        showAlert("Loading Genre", "Please wait as the model is summarizing your genre. This may take some time!", Alert.AlertType.INFORMATION);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        runInBackground(() -> {
+            try {
+                // Perform the background operation
+                summarized_genre = genre_specifier.getResponse("user_cache/" + global_username + "_liked_articles.txt");
+                set_preferred_genre(summarized_genre);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                // Decrement the latch to signal the task completion
+                latch.countDown();
+            }
+        });
+
+        // Wait for the task to complete
         try {
-            summarized_genre = genre_specifier.getResponse("user_cache/"+username + "_liked_articles.txt");// Ollama initialized here and genre summarized before page loaded
-            set_preferred_genre(summarized_genre);
-            showAlert("Preferred Genre","Your preferred Genre is: '"+summarized_genre+"'", Alert.AlertType.INFORMATION);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            latch.await(); // Blocks until the latch count reaches 0
+            // Proceed with further actions after the background task is done
+            showAlert("Preferred Genre", "Your preferred Genre is: '" + summarized_genre + "'", Alert.AlertType.INFORMATION);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore the interrupted status
+            System.err.println("Task interrupted: " + e.getMessage());
         }
+
         if (recommended_news_webview != null) {
             web_instance.initialize_engine(recommended_news_webview);
         } else {
