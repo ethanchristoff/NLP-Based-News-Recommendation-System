@@ -1,5 +1,11 @@
 package com.example.ethan_perera_2331419;
 
+import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.recommendation_engine.OllamaDriver;
+import com.example.ethan_perera_2331419.services.JSON_Reader;
+import com.example.ethan_perera_2331419.services.Web_Content;
+import com.example.ethan_perera_2331419.services.fundamental_tools;
+import com.example.ethan_perera_2331419.services.store_details;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import javafx.event.ActionEvent;
@@ -17,18 +23,44 @@ import javafx.fxml.Initializable;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 import javafx.scene.web.WebView;
 
 public class recommended_article_viewer_controller extends fundamental_tools implements Initializable{
-
+    //------Variable Initialization------
+    private store_details new_user = new store_details();
     private Stage stage;
     private Scene scene;
     private Parent root;
+    private int count;
+    private String summarized_genre;
+    private final String global_username = new_user.getInstance().getGlobalDetails();
 
+    //------Object Initialization------
+    private final OllamaDriver genre_specifier = new OllamaDriver();
+    private final SQL_Driver SQL_obj = new SQL_Driver();
+    private final JSON_Reader news_obj = new JSON_Reader();
+    private final JsonArray articles = news_obj.readJsonFile();
+    private final Web_Content web_instance = new Web_Content();
 
+    //------FXML loaders------
+
+    @FXML
+    Label recommended_article_header;
+    @FXML
+    Label recommended_article_category;
+    @FXML
+    Label recommended_article_release_date;
+    @FXML
+    ScrollPane recommended_article_content;
+    @FXML
+    WebView recommended_news_webview;
+    @FXML
+    Hyperlink recommended_article_link;
     //------Scene Switchers------
 
     public void switchToHome_Not_Validated(ActionEvent event) throws IOException{
@@ -48,41 +80,25 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
     //------Exit Program------
 
     public void exit_program() {
-        clearSessionCredentials();
+        remove_from_logged_in_users(global_username,SQL_obj);
+        clearSessionCredentials(global_username);
         System.exit(1);
     }
 
-    //------Variable Initialization------
-
-    private final OllamaContent genre_specifier = new OllamaContent();
-    private final SQL_Content SQL_obj = new SQL_Content();
-    private final JSON_Reader news_obj = new JSON_Reader();// Instantiated object for JSON File reader
-    private final JsonArray articles = news_obj.readJsonFile();// JsonArray for news articles
-    private final Web_Content web_instance = new Web_Content();
-    private int count;
-    private final String username = readSessionCredentials()[0];
-    private String summarized_genre;
-
-    //------FXML loaders------
-
-    @FXML
-    Label recommended_article_header;
-    @FXML
-    Label recommended_article_category;
-    @FXML
-    Label recommended_article_release_date;
-    @FXML
-    ScrollPane recommended_article_content;
-    @FXML
-    WebView recommended_news_webview;
-    @FXML
-    Hyperlink recommended_article_link;
-
     //------Main Content------
 
-    private void displayRecommendedArticles(int index, boolean forward) throws IOException {
-        String[] preferred_genre;
-        preferred_genre = switch (summarized_genre.toLowerCase()) {
+    public void displayRecommendedArticles(int index, boolean forward) {
+        String fileName = "user_cache/" + global_username + "_skipped_articles.txt";
+        String[] skippedHeadlines;
+        if (file_exists(fileName)){
+            skippedHeadlines = readHeadersFromTextFile(fileName);
+        }else{
+            skippedHeadlines = new String[]{};// Initiate an empty array
+        }
+
+        Set<String> skippedHeadlinesSet = new HashSet<>(Arrays.asList(skippedHeadlines));
+
+        String[] preferred_genre = switch (summarized_genre.toLowerCase()) {
             case "society & culture" -> new String[]{
                     "LATINO VOICES", "BLACK VOICES", "QUEER VOICES", "STYLE & BEAUTY",
                     "STYLE", "CULTURE & ARTS", "ARTS", "ARTS & CULTURE",
@@ -101,7 +117,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
                     "COMEDY", "WEIRD NEWS", "ENTERTAINMENT", "SPORTS",
                     "BUSINESS", "MONEY", "COLLEGE", "FIFTY", "RELIGION"
             };
-            default -> new String[]{}; // Empties array for unrecognized genre
+            default -> new String[]{};
         };
 
         int originalIndex = index;
@@ -109,6 +125,12 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         do {
             JsonObject article = articles.get(index).getAsJsonObject();
             String category = article.get("category").getAsString();
+            String headline = article.get("headline").getAsString();
+
+            if (skippedHeadlinesSet.contains(headline)) {
+                index = forward ? (index + 1) % articles.size() : (index - 1 + articles.size()) % articles.size();
+                continue;
+            }
 
             for (String genre : preferred_genre) {
                 if (category.equalsIgnoreCase(genre)) {
@@ -118,10 +140,11 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
             }
 
             index = forward ? (index + 1) % articles.size() : (index - 1 + articles.size()) % articles.size();
-        } while (index != originalIndex); // Loop until it has cycled through all articles
+        } while (index != originalIndex);
 
         showAlert("No Articles", "No articles available for the selected filter.", Alert.AlertType.INFORMATION);
     }
+
 
     private void updateRecommendedArticleUI(JsonObject article) {
         recommended_article_header.setText(article.get("headline").getAsString());
@@ -154,9 +177,32 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         });
     }
 
+    public void set_preferred_genre(String preferred_genre) {
+        String sql = "UPDATE users SET Preferred_Genres = ? WHERE username = ?";
+        SQL_obj.set_query(sql);
+        PreparedStatement pstmt = SQL_obj.getPreparedStatement();
+
+        try {
+            String username = readSessionCredentials(global_username)[0];
+
+            pstmt.setString(1, preferred_genre);
+            pstmt.setString(2, username);
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+        } finally {
+            SQL_obj.closeResources();
+            SQL_obj.close_connection();
+        }
+    }
+
+
     //------Recommended Article Switcher------
 
-    public void recommended_next_article() throws IOException {
+    public void recommended_next_article() {
         if (!articles.isEmpty()) {
             count = (count + 1) % articles.size();
             displayRecommendedArticles(count, true);
@@ -166,7 +212,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         }
     }
 
-    public void recommended_previous_article() throws IOException {
+    public void recommended_previous_article() {
         if (!articles.isEmpty()) {
             count = (count - 1 + articles.size()) % articles.size();
             displayRecommendedArticles(count, false); // Backward direction
@@ -175,18 +221,40 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         }
     }
 
+    //------Web Page Re-Loader------
+
     public void reload_page(){
         web_instance.reload_page();
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        showAlert("Loading Genre", "Please wait as the model is summarizing your genre. This may take some time!", Alert.AlertType.INFORMATION);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        runInBackground(() -> {
+            try {
+                // Perform the background operation
+                summarized_genre = genre_specifier.getResponse("user_cache/" + global_username + "_liked_articles.txt");
+                set_preferred_genre(summarized_genre);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                // Decrement the latch to signal the task completion
+                latch.countDown();
+            }
+        });
+
+        // Wait for the task to complete
         try {
-            summarized_genre = genre_specifier.getRespones(username + "_liked_articles.txt");// Ollama initialized here and genre summarized before page loaded
-            showAlert("Preferred Genre","Your preferred Genre is: '"+summarized_genre+"'", Alert.AlertType.INFORMATION);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            latch.await(); // Blocks until the latch count reaches 0
+            // Proceed with further actions after the background task is done
+            showAlert("Preferred Genre", "Your preferred Genre is: '" + summarized_genre + "'", Alert.AlertType.INFORMATION);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore the interrupted status
+            System.err.println("Task interrupted: " + e.getMessage());
         }
+
         if (recommended_news_webview != null) {
             web_instance.initialize_engine(recommended_news_webview);
         } else {

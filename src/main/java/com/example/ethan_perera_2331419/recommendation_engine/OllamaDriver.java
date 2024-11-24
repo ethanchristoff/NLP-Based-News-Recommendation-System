@@ -1,4 +1,4 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.recommendation_engine;
 
 import org.json.JSONObject;
 
@@ -11,11 +11,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
-class OllamaContent {
-    private String prompt = " ";
-    private final String constraints = "(Just select one of the genres, there is no need for an explanation or any other text whatsoever, and give your answer)Which of the following genres is the given text: Society & Culture, News & Current Events, Lifestyle & Well-being, Entertainment & Leisure";
+public class OllamaDriver {
 
-    public String sendRequest() throws IOException {
+    private final String constraints = "(Just select one of the genres, there is no need for an explanation or any other text whatsoever, and give your answer) Which of the following genres is the given text: Society & Culture, News & Current Events, Lifestyle & Well-being, Entertainment & Leisure";
+
+    public String sendRequest(String prompt) throws IOException {
         URL url = new URL("http://localhost:11434/api/generate");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -24,10 +24,8 @@ class OllamaContent {
         conn.setDoOutput(true);
 
         String modelName = "llama3.1";
-        String jsonInputString;
-
-        jsonInputString = String.format(
-                "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\": false}", modelName, prompt+" Constraint:"+constraints
+        String jsonInputString = String.format(
+                "{\"model\":\"%s\",\"prompt\":\"%s Constraint:%s\",\"stream\": false}", modelName, prompt, constraints
         );
 
         try (OutputStream os = conn.getOutputStream()) {
@@ -43,20 +41,21 @@ class OllamaContent {
             return "There was an issue connecting to 'http://localhost:11434/api/generate'";
         }
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
-        StringBuilder response = new StringBuilder();
-        String line;
-        while ((line = in.readLine()) != null) {
-            response.append(line);
-        }
-        in.close();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = in.readLine()) != null) {
+                response.append(line);
+            }
 
-        JSONObject jsonResponse = new JSONObject(response.toString());
-        conn.disconnect();
-        return jsonResponse.getString("response");
+            JSONObject jsonResponse = new JSONObject(response.toString());
+            return jsonResponse.getString("response");
+        } finally {
+            conn.disconnect();
+        }
     }
 
-    public String getRespones(String filename) throws IOException {
+    public String getResponse(String filename) throws IOException {
         StringBuilder likedArticles = new StringBuilder();
 
         try {
@@ -67,17 +66,12 @@ class OllamaContent {
                 }
             }
         } catch (IOException e) {
+            System.err.println("Error reading file: " + filename);
             e.printStackTrace();
+            return "File reading error.";
         }
 
-        prompt = likedArticles.toString().replace("\"", "").trim();// Removes any quotation marks due to colliding characters
-
-        return sendRequest();
-    }
-
-    public static void main(String[] args) throws IOException {
-        OllamaContent olc = new OllamaContent();
-        String response = olc.getRespones("ethan_perera_liked_articles.txt");
-        System.out.println(response);
+        String prompt = likedArticles.toString().replace("\"", "").trim(); // Remove any quotation marks
+        return sendRequest(prompt);
     }
 }
