@@ -1,6 +1,7 @@
 package com.example.ethan_perera_2331419;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.models.user;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -44,36 +45,14 @@ public class reset_password_controller extends fundamental_tools {
         }else if (!password_valiadated) {
             showAlert("Password complexity",password_validated_array[1], Alert.AlertType.ERROR);
         }else {
-            String checkSql = "SELECT username FROM users WHERE username = ? AND password = ?";
-            SQL_obj.set_query(checkSql);
-            pstmt = SQL_obj.getPreparedStatement();
-
-            try {
-                pstmt.setString(1, resetUsername);
-                pstmt.setString(2, resetPassword);
-                rs = SQL_obj.get_ResultSet(pstmt);
-
-                if (rs.next()) {
-                    String updateSql = "UPDATE users SET password = ? WHERE username = ?";
-                    SQL_obj.set_query(updateSql);
-                    pstmt = SQL_obj.getPreparedStatement();
-
-                    pstmt.setString(1, resetRePassword);
-                    pstmt.setString(2, resetUsername);
-                    pstmt.executeUpdate();
-
-                    showAlert("Success", "Password has been reset successfully.", Alert.AlertType.INFORMATION);
-                    switchToSignIn(event);
-                } else {
-                    // Username or password did not match
-                    showAlert("Error", "Invalid username or current password.", Alert.AlertType.ERROR);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
-            } finally {
-                SQL_obj.closeResources();
-                SQL_obj.close_connection();
+            user User = new user(resetUsername,resetPassword);
+            boolean reset_password = User.reset_user_password(resetRePassword);
+            if (reset_password){
+                remove_from_logged_in_users(resetUsername,SQL_obj);
+                clearSessionCredentials(resetUsername);
+                switchToSignIn(event);
+            }else {
+                showAlert("Error", "Invalid username or current password.", Alert.AlertType.ERROR);
             }
         }
     }

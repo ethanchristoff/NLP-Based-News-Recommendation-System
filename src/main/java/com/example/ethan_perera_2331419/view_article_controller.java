@@ -1,10 +1,11 @@
 package com.example.ethan_perera_2331419;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
-import com.example.ethan_perera_2331419.services.JSON_Reader;
+import com.example.ethan_perera_2331419.models.Articles;
+import com.example.ethan_perera_2331419.models.rate;
 import com.example.ethan_perera_2331419.services.Web_Content;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
-import com.example.ethan_perera_2331419.services.store_details;
+import com.example.ethan_perera_2331419.services.store_user_details;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import javafx.event.ActionEvent;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class view_article_controller extends fundamental_tools implements Initializable {
@@ -41,20 +41,18 @@ public class view_article_controller extends fundamental_tools implements Initia
     private WebView news_webview;
     @FXML
     private ChoiceBox<String> filtered_articles_choicebox;
-    @FXML
-    private Button skip_article_btn;
     //------Variable Loaders------
-    private final store_details new_user = new store_details();
-    private final store_details temp_creds = new store_details();
+    private final store_user_details new_user = new store_user_details();
     private String global_username = "";
-    private boolean is_temp_user;
+    private int count = 0;
     //------SQL Based Variables------
     private PreparedStatement pstmt;
     private String sql;
     //------Object Initializers------
     private final SQL_Driver SQL_obj = new SQL_Driver();
-    private final JSON_Reader news_obj = new JSON_Reader();
+    private final Articles news_obj = new Articles();
     private final Web_Content web_instance = new Web_Content();
+    private final rate rateService = new rate();
     //------Variables Continued------
     private final JsonArray articles = news_obj.readJsonFile();
     private final String[] categories_array = news_obj.get_categories();
@@ -84,8 +82,6 @@ public class view_article_controller extends fundamental_tools implements Initia
             SQL_obj.close_connection();
         }
     }
-
-    int count = 0;
     public void next_article() {
         if (articles != null && articles.size() > 0) {
             count = (count + 1) % articles.size();
@@ -107,7 +103,7 @@ public class view_article_controller extends fundamental_tools implements Initia
         }
     }
 
-    public void next_article_skipped() {
+    public void skip_next_article() {
         if (articles != null && articles.size() > 0) {
             skip_article(count, true);
             count = (count + 1) % articles.size();
@@ -118,25 +114,11 @@ public class view_article_controller extends fundamental_tools implements Initia
         }
     }
 
-    public void skip_article(int index, boolean forward) {
-        if (is_temp_user) {
-            showAlert("Temp User", "Ensure that you login to use this feature", Alert.AlertType.ERROR);
-            skip_article_btn.setDisable(true);
-            return;
-        }
-
+    private void skip_article(int index, boolean forward) {
         JsonObject skippedArticle = displayArticle(index, forward);
         if (skippedArticle != null) {
-            String skippedArticleTitle = skippedArticle.get("headline").getAsString();
-
-            String fileName = "user_cache/"+global_username + "_skipped_articles.txt";
-            write_to_text_file(fileName,skippedArticleTitle);
-
-            showAlert("Article Skipped", "'" + skippedArticleTitle + "' was skipped", Alert.AlertType.INFORMATION);
+            rateService.skipArticle(global_username, skippedArticle, index, forward, global_username);
         }
-
-        count = (forward ? (count + 1) : (count - 1 + articles.size())) % articles.size();
-        displayArticle(count, forward);
     }
 
     private JsonObject displayArticle(int index, boolean forward) {
@@ -176,7 +158,7 @@ public class view_article_controller extends fundamental_tools implements Initia
         setupArticleLinkAction(url);
         web_instance.load_page(url); // Loads the article page
 
-        setupLikeButtonAction(article.get("short_description").getAsString());
+        setupLikeButtonAction(article.get("short_description").getAsString(),like_btn,global_username);
     }
 
     private void setupArticleLinkAction(String url) {
@@ -189,24 +171,8 @@ public class view_article_controller extends fundamental_tools implements Initia
         });
     }
 
-    private void setupLikeButtonAction(String description) {
-        like_btn.setOnAction(event -> like_article(description, readSessionCredentials(global_username)[0]));// Inputs username and description of article that was liked
-        like_btn.setDisable(false);
-    }
-
-    public void like_article(String description, String userName) {
-        if (is_temp_user) {
-            showAlert("Temp User", "Ensure that you login to use this feature", Alert.AlertType.ERROR);
-            like_btn.setDisable(true);
-            return;
-        }
-
-        showAlert("Article Liked", "The article was liked!", Alert.AlertType.INFORMATION);
-        like_btn.setDisable(true);
-
-        String fileName = "user_cache/" + userName + "_liked_articles.txt";
-
-        runInBackground(()->write_to_text_file(fileName, description));
+    private void setupLikeButtonAction(String description, Button likeBtn, String globalUsername) {
+        likeBtn.setOnAction(event -> rateService.likeArticle(description, globalUsername, likeBtn));
     }
 
     public void reload_page(){
@@ -221,7 +187,6 @@ public class view_article_controller extends fundamental_tools implements Initia
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         global_username = new_user.getInstance().getGlobalDetails();
-        is_temp_user = Objects.equals(temp_creds.getInstance().getGlobalDetails(), "temp");
         if (filtered_articles_choicebox == (null)){
             System.err.println("ChoiceBox not yet initialized");
         }else

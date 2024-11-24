@@ -1,4 +1,4 @@
-package com.example.ethan_perera_2331419.services;
+package com.example.ethan_perera_2331419.models;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class JSON_Reader {
+public class Articles {
 
     private static final String FILE_PATH = "src/main/java/com/example/ethan_perera_2331419/Articles/News_Category_Dataset_v3.json";
 

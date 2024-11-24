@@ -1,11 +1,10 @@
 package com.example.ethan_perera_2331419;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
-import com.example.ethan_perera_2331419.recommendation_engine.OllamaDriver;
-import com.example.ethan_perera_2331419.services.JSON_Reader;
+import com.example.ethan_perera_2331419.models.Articles;
 import com.example.ethan_perera_2331419.services.Web_Content;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
-import com.example.ethan_perera_2331419.services.store_details;
+import com.example.ethan_perera_2331419.services.store_user_details;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import javafx.event.ActionEvent;
@@ -24,26 +23,28 @@ import javafx.fxml.Initializable;
 import java.io.*;
 import java.net.URL;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 import javafx.scene.web.WebView;
 
 public class recommended_article_viewer_controller extends fundamental_tools implements Initializable{
     //------Variable Initialization------
-    private store_details new_user = new store_details();
+    private store_user_details new_user = new store_user_details();
     private Stage stage;
     private Scene scene;
     private Parent root;
     private int count;
     private String summarized_genre;
     private final String global_username = new_user.getInstance().getGlobalDetails();
-
+    //------SQL Based Variables------
+    private ResultSet rs;
+    private String sql;
+    private PreparedStatement pstmt;
     //------Object Initialization------
-    private final OllamaDriver genre_specifier = new OllamaDriver();
     private final SQL_Driver SQL_obj = new SQL_Driver();
-    private final JSON_Reader news_obj = new JSON_Reader();
+    private final Articles news_obj = new Articles();
     private final JsonArray articles = news_obj.readJsonFile();
     private final Web_Content web_instance = new Web_Content();
 
@@ -177,28 +178,6 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         });
     }
 
-    public void set_preferred_genre(String preferred_genre) {
-        String sql = "UPDATE users SET Preferred_Genres = ? WHERE username = ?";
-        SQL_obj.set_query(sql);
-        PreparedStatement pstmt = SQL_obj.getPreparedStatement();
-
-        try {
-            String username = readSessionCredentials(global_username)[0];
-
-            pstmt.setString(1, preferred_genre);
-            pstmt.setString(2, username);
-
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
-        } finally {
-            SQL_obj.closeResources();
-            SQL_obj.close_connection();
-        }
-    }
-
 
     //------Recommended Article Switcher------
 
@@ -221,6 +200,35 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
         }
     }
 
+    public String get_preferred_genre() {
+        String[] sessionData = readSessionCredentials(global_username);
+
+        sql = "SELECT Preferred_Genres  FROM users WHERE username = ? AND password = ?";
+        SQL_obj.set_query(sql);
+        pstmt = SQL_obj.getPreparedStatement();
+
+        try {
+
+            pstmt.setString(1, sessionData[0]);
+            pstmt.setString(2, sessionData[1]);
+
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("Preferred_Genres");
+            } else {
+                showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+        } finally {
+            SQL_obj.closeResources();
+            SQL_obj.close_connection();
+        }
+        return null;
+    }
+
     //------Web Page Re-Loader------
 
     public void reload_page(){
@@ -229,32 +237,7 @@ public class recommended_article_viewer_controller extends fundamental_tools imp
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        showAlert("Loading Genre", "Please wait as the model is summarizing your genre. This may take some time!", Alert.AlertType.INFORMATION);
-        CountDownLatch latch = new CountDownLatch(1);
-
-        runInBackground(() -> {
-            try {
-                // Perform the background operation
-                summarized_genre = genre_specifier.getResponse("user_cache/" + global_username + "_liked_articles.txt");
-                set_preferred_genre(summarized_genre);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                // Decrement the latch to signal the task completion
-                latch.countDown();
-            }
-        });
-
-        // Wait for the task to complete
-        try {
-            latch.await(); // Blocks until the latch count reaches 0
-            // Proceed with further actions after the background task is done
-            showAlert("Preferred Genre", "Your preferred Genre is: '" + summarized_genre + "'", Alert.AlertType.INFORMATION);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // Restore the interrupted status
-            System.err.println("Task interrupted: " + e.getMessage());
-        }
-
+        summarized_genre = get_preferred_genre();
         if (recommended_news_webview != null) {
             web_instance.initialize_engine(recommended_news_webview);
         } else {

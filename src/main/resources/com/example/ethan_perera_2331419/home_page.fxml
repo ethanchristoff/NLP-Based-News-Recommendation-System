@@ -19,8 +19,8 @@
             </Menu>
          </menus>
       </MenuBar>
-      <Button layoutX="92.0" layoutY="155.0" mnemonicParsing="false" onAction="#switchToSignIn" text="Previous Page" />
-      <Button layoutX="93.0" layoutY="232.0" mnemonicParsing="false" onAction="#switchToArticleViewer" text="Article Viewer" />
+      <Button fx:id="previous_page_btn" layoutX="92.0" layoutY="155.0" mnemonicParsing="false" onAction="#switchToSignIn" text="Previous Page" />
+      <Button fx:id="article_viewer_btn" layoutX="93.0" layoutY="232.0" mnemonicParsing="false" onAction="#switchToArticleViewer" text="Article Viewer" />
       <Button fx:id="recommended_articles_btn" layoutX="51.0" layoutY="272.0" mnemonicParsing="false" onAction="#switchToReommendedArticleViewer" text="Recommended Article Viewer" />
       <Button fx:id="personal_details_btn" layoutX="440.0" layoutY="48.0" mnemonicParsing="false" onAction="#switchToUserPage" text="View Personal Details" />
       <Label fx:id="text_output_area" layoutX="228.0" layoutY="94.0" prefHeight="252.0" prefWidth="342.0" wrapText="true" />

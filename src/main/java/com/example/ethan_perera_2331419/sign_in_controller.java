@@ -1,8 +1,9 @@
 package com.example.ethan_perera_2331419;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.models.user;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
-import com.example.ethan_perera_2331419.services.store_details;
+import com.example.ethan_perera_2331419.services.store_user_details;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -21,12 +22,8 @@ public class sign_in_controller extends fundamental_tools {
     @FXML
     private TextField password_input;
     //------Variable Loaders------
-    private final store_details current_user = new store_details();
-    private final store_details temp_creds = new store_details();
-    //------SQL Based Variables------
-    private PreparedStatement pstmt;
-    private ResultSet rs;
-    private String sql;
+    private final store_user_details current_user = new store_user_details();
+    private final store_user_details temp_creds = new store_user_details();
     //------Object Initializers------
     private final SQL_Driver SQL_obj = new SQL_Driver();
     //------Scene Switchers------
@@ -49,47 +46,18 @@ public class sign_in_controller extends fundamental_tools {
 
         current_user.getInstance().setGlobalDetails(inputUsername);
 
+        user new_user = new user(inputUsername, inputPassword);
+
         if (Objects.equals(inputUsername, "") || Objects.equals(inputPassword, "")) {
             showAlert("Error", "Input Fields Empty!", Alert.AlertType.ERROR);
         }else if(check_logged_in_users(inputUsername,SQL_obj)){
             showAlert("Session Error","That user is already logged in!", Alert.AlertType.ERROR);
         }else {
-            if (authenticateUser(inputUsername, inputPassword)) {
+            if (new_user.authenticateUser()) {
                 add_to_logged_in_users(inputUsername,SQL_obj);
                 saveSessionCredentials(inputUsername, inputPassword);
                 scene_switcher(event, "home_page.fxml");
             }
-        }
-    }
-    //------Controller Functions------
-    private boolean authenticateUser(String inputUsername, String inputPassword) {
-        SQL_obj.open_connection();
-
-        sql = "SELECT username, password FROM users WHERE username = ? AND password = ?";
-        SQL_obj.set_query(sql);
-        pstmt = SQL_obj.getPreparedStatement();
-
-        try {
-            pstmt.setString(1, inputUsername);
-            pstmt.setString(2, inputPassword);
-            rs = SQL_obj.get_ResultSet(pstmt);
-
-            if (rs.next()) {
-                String authenticatedUsername = rs.getString("username");
-                System.out.println("User authenticated: " + authenticatedUsername);
-                showAlert("Success", "User authenticated: " + authenticatedUsername, Alert.AlertType.INFORMATION);
-                return true;
-            } else {
-                showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
-                return false;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
-            return false;
-        } finally {
-            SQL_obj.closeResources();
-            SQL_obj.close_connection();
         }
     }
     //------Exit Program------

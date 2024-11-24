@@ -1,17 +1,15 @@
 package com.example.ethan_perera_2331419;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
+import com.example.ethan_perera_2331419.models.user;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
-import com.example.ethan_perera_2331419.services.store_details;
+import com.example.ethan_perera_2331419.services.store_user_details;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -25,11 +23,11 @@ public class user_page_controller extends fundamental_tools implements Initializ
     @FXML
     private ScrollPane user_details_content;
     //------Variable Loaders------
-    public static TextArea staticTxtArea;
     private String global_username = "";
     private final SQL_Driver SQL_obj = new SQL_Driver();
     //------Object Initializers------
-    private final store_details current_user = new store_details();
+    private final store_user_details active_user_stored_details = new store_user_details();
+    private user active_user = new user(global_username);
     //------Scene Switchers------
     public void switchToHome_Not_Validated(ActionEvent event) throws IOException{
         scene_switcher(event, "home_page.fxml");
@@ -38,39 +36,34 @@ public class user_page_controller extends fundamental_tools implements Initializ
     public void clear_details(){
         clear_articles_btn.setDisable(false);
         String filePath = "user_cache/"+global_username+"_liked_articles.txt";
-        try (FileWriter writer = new FileWriter(filePath, false)) {
-            writer.write("");
+        if (active_user.clear_user_details(filePath)){
             showAlert("File CLeared","Contents of the previously liked articles successfully cleared", Alert.AlertType.INFORMATION);
-            clear_articles_btn.setDisable(true);
-        } catch (IOException e) {
-            showAlert("File Error","An error occurred while clearing the file: " + e.getMessage(), Alert.AlertType.INFORMATION);
         }
     }
 
-    public void print_liked_articles(){
+    public void print_liked_articles() {
         view_liked_articles_btn.setDisable(false);
-        String filePath = "user_cache/"+global_username+"_liked_articles.txt";
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            StringBuilder content = new StringBuilder();
-            String line;
 
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append("\n");
-            }
+        String filePath = "user_cache/" + global_username + "_liked_articles.txt";
+        String likedArticlesContent = active_user.readLikedArticlesFromFile(filePath);
 
-            VBox articleBox = new VBox(10); // Sets the spacing set directly in constructor
-            Label contentLabel = new Label(content.toString());
-            contentLabel.setWrapText(true);
-
-            articleBox.getChildren().add(contentLabel);
-            user_details_content.setContent(articleBox);
-            user_details_content.setFitToWidth(true);
-
+        if (likedArticlesContent != null && !likedArticlesContent.isEmpty()) {
+            displayContentInScrollPane(likedArticlesContent);
             view_liked_articles_btn.setDisable(true);
-    } catch (IOException e) {
-            showAlert("File Error","There was an issue getting your liked articles, maybe like a couple and come back?", Alert.AlertType.INFORMATION);
+        } else {
+            showAlert("No Liked Articles", "No liked articles found. Maybe like a couple and come back?", Alert.AlertType.INFORMATION);
             view_liked_articles_btn.setDisable(true);
         }
+    }
+
+    private void displayContentInScrollPane(String content) {
+        VBox articleBox = new VBox(10); // Sets the spacing set directly in the constructor
+        Label contentLabel = new Label(content);
+        contentLabel.setWrapText(true);
+
+        articleBox.getChildren().add(contentLabel);
+        user_details_content.setContent(articleBox);
+        user_details_content.setFitToWidth(true);
     }
     //------Exit Program------
     public void exit_program() {
@@ -80,6 +73,6 @@ public class user_page_controller extends fundamental_tools implements Initializ
     }
     @Override
     public void initialize(URL url, ResourceBundle rb){
-        global_username = current_user.getInstance().getGlobalDetails();
+        global_username = active_user_stored_details.getInstance().getGlobalDetails();
     }
 }
