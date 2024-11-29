@@ -1,8 +1,10 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.interfaces;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
 import com.example.ethan_perera_2331419.models.user;
+import com.example.ethan_perera_2331419.scene_switcher_service;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
+import com.example.ethan_perera_2331419.services.store_user_details;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -22,9 +24,15 @@ public class sign_up_controller extends fundamental_tools {
     private TextField new_password_input;
     @FXML
     private TextField new_re_password_input;
+    //------Object Initializers------
+    private final store_user_details current_user = new store_user_details();
+    private final SQL_Driver SQL_obj = new SQL_Driver();
+    private final scene_switcher_service scene_switcher = new scene_switcher_service();
+    //------Variable Initializer------
+    private final String global_username = current_user.getInstance().getGlobalDetails();
     //------Scene Switchers------
     public void switchToSignIn(ActionEvent event) throws IOException{
-        scene_switcher(event, "sign_in.fxml");
+        scene_switcher.switch_scene(event, "sign_in.fxml");
     }
     //------Controller Functions------
     public void sign_up(ActionEvent event) throws IOException {
@@ -43,7 +51,7 @@ public class sign_up_controller extends fundamental_tools {
         } else if (!password_validated) {
             showAlert("Password complexity", password_validated_array[1], Alert.AlertType.ERROR);
         } else {
-            user new_user = new user(new_username,new_password);
+            user new_user = new user(new_username,new_password,true);
             if (new_user.add_user()) {
                 showAlert("Success", "User registered successfully.", Alert.AlertType.INFORMATION);
                 switchToSignIn(event);
@@ -55,6 +63,8 @@ public class sign_up_controller extends fundamental_tools {
 
     //------Exit Program------
     public void exit_program() {
+        remove_from_logged_in_users(global_username,SQL_obj);
+        clearSessionCredentials(global_username);
         System.exit(1);
     }
 }

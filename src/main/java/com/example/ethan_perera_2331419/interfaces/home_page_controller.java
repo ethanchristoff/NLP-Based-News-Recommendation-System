@@ -1,8 +1,9 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.interfaces;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
 import com.example.ethan_perera_2331419.models.user;
 import com.example.ethan_perera_2331419.models.recommend;
+import com.example.ethan_perera_2331419.scene_switcher_service;
 import com.example.ethan_perera_2331419.services.RecommendationEngine;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
 import com.example.ethan_perera_2331419.services.store_user_details;
@@ -50,10 +51,10 @@ public class home_page_controller extends fundamental_tools implements Initializ
     private final store_user_details current_user = new store_user_details();
     private final store_user_details temp_creds = new store_user_details();
     private final RecommendationEngine genre_specifier = new RecommendationEngine();
-
+    private final scene_switcher_service scene_switcher = new scene_switcher_service();
     //------Scene Switchers------
     public void switchToSignIn(ActionEvent event) throws IOException {
-        scene_switcher(event, "sign_in.fxml");
+        scene_switcher.switch_scene(event, "sign_in.fxml");
     }
 
     public void switchToUserPage(ActionEvent event) throws IOException{
@@ -62,11 +63,11 @@ public class home_page_controller extends fundamental_tools implements Initializ
             personal_details_btn.setDisable(true);
             return;
         }
-        scene_switcher(event, "user_page.fxml");
+        scene_switcher.switch_scene(event, "user_page.fxml");
     }
 
     public void switchToArticleViewer(ActionEvent event) throws IOException {
-        scene_switcher(event, "view_article_page.fxml");
+        scene_switcher.switch_scene(event, "view_article_page.fxml");
     }
 
     public void switchToReommendedArticleViewer(ActionEvent event) {
@@ -97,7 +98,7 @@ public class home_page_controller extends fundamental_tools implements Initializ
             ollamaTask.setOnSucceeded(event1 -> {
                 try {
                     showAlert("Preferred Genre", "Your preferred Genre is: '" + summarized_genre + "'", Alert.AlertType.INFORMATION);
-                    scene_switcher(event, "view_recommended_articles_page.fxml");
+                    scene_switcher.switch_scene(event, "view_recommended_articles_page.fxml");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -108,14 +109,12 @@ public class home_page_controller extends fundamental_tools implements Initializ
             });
 
             ollamaTask.setOnRunning(event1 -> {
-                // Prevent the user from switching stages but enables them to interact with page they are in
                 recommended_articles_btn.setDisable(true);
                 personal_details_btn.setDisable(true);
                 article_viewer_btn.setDisable(true);
                 previous_page_btn.setDisable(true);
             });
 
-            // Start the task asynchronously
             new Thread(ollamaTask).start();
 
         } else {
@@ -137,7 +136,7 @@ public class home_page_controller extends fundamental_tools implements Initializ
         SQL_obj.set_query(sql);
         pstmt = SQL_obj.getPreparedStatement();
 
-        user User = new user(sessionData[0],sessionData[1]);
+        user User = new user(sessionData[0],sessionData[1],true);
         text_output_area.setText(User.show_personal_details());
 
         SQL_obj.closeResources();

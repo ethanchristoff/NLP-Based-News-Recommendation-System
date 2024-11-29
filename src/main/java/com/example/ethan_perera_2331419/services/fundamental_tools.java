@@ -1,13 +1,7 @@
 package com.example.ethan_perera_2331419.services;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.stage.Stage;
 
 import java.io.*;
 import java.sql.PreparedStatement;
@@ -15,10 +9,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class fundamental_tools {
-
+    //------Object Initializers------
+    private static ExecutorService executor;
+    //------Fundamental_tools functions------
     public void showAlert(String title, String content, Alert.AlertType alertType) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
@@ -111,22 +109,6 @@ public class fundamental_tools {
     public boolean file_exists(String filePath){
         File file = new File(filePath);
         return file.exists() && file.isFile() && file.length() > 0;
-    }
-
-    public void scene_switcher(ActionEvent event, String page_name) throws IOException {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(page_name)));
-        Stage stage;
-        Scene scene;
-
-        if (root == null) {
-            showAlert("Error", page_name+" not found!", Alert.AlertType.ERROR);
-            return;
-        }
-
-        stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
     }
 
     public void write_to_text_file(String fileName, String articleTitle) {
@@ -229,9 +211,22 @@ public class fundamental_tools {
         }
     }
 
-    public static void runInBackground(Runnable task) {
-        Thread backgroundTask = new Thread(task);
-        backgroundTask.setDaemon(true);
-        backgroundTask.start();
+    public static void run_simultaneously(List<Runnable> tasks) {
+        executor = Executors.newFixedThreadPool(tasks.size());
+
+        for (Runnable task : tasks) {
+            executor.submit(task);
+        }
+
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                System.out.println("Executor shutdown");
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

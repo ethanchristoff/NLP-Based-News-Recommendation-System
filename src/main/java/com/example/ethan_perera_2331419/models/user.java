@@ -2,7 +2,10 @@ package com.example.ethan_perera_2331419.models;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
+import com.example.ethan_perera_2331419.services.store_user_details;
+import com.google.gson.JsonObject;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -16,21 +19,25 @@ public class user extends fundamental_tools {
     //------Variable Loaders------
     private String inputUsername;
     private String inputPassword;
+    private boolean GUIalert;
     //------SQL Based Variables------
     private PreparedStatement pstmt;
     private ResultSet rs;
     private String sql;
     //------Object Initializers------
     private final SQL_Driver SQL_obj = new SQL_Driver();
+    private final rate rate_service = new rate();
     //------Constructor Initialization------
-    public user(String inputUsername, String inputPassword){
+    public user(String inputUsername, String inputPassword, boolean GUIalert){
         this.inputUsername = inputUsername;
         this.inputPassword = inputPassword;
+        this.GUIalert = GUIalert;
     }
 
-    public user(String inputUsername){
+    public user(String inputUsername, boolean GUIalert){
         this.inputUsername = inputUsername;
         this.inputPassword = "";
+        this.GUIalert = GUIalert;
     }
     //------User Functions------
     public boolean authenticateUser() {
@@ -48,15 +55,27 @@ public class user extends fundamental_tools {
             if (rs.next()) {
                 String authenticatedUsername = rs.getString("username");
                 System.out.println("User authenticated: " + authenticatedUsername);
-                showAlert("Success", "User authenticated: " + authenticatedUsername, Alert.AlertType.INFORMATION);
+                if (GUIalert){
+                    showAlert("Success", "User authenticated: " + authenticatedUsername, Alert.AlertType.INFORMATION);
+                }else{
+                    System.out.println("Success! The user has been authenticated: " + authenticatedUsername);
+                }
                 return true;
             } else {
-                showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
+                if (GUIalert){
+                    showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
+                }else {
+                    System.out.println("Error the username or password is invalid");
+                }
                 return false;
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+            if (GUIalert){
+                showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
+            }else{
+                System.out.println("Error the username or password is invalid");
+            }
             return false;
         } finally {
             SQL_obj.closeResources();
@@ -136,11 +155,19 @@ public class user extends fundamental_tools {
                 pstmt.executeUpdate();
 
                 reset_password = true;
-                showAlert("Success", "Password has been reset successfully.", Alert.AlertType.INFORMATION);
+                if (GUIalert){
+                    showAlert("Success", "Password has been reset successfully.", Alert.AlertType.INFORMATION);
+                }else{
+                    System.out.println("Success, the password has been reset successfully,");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+            if (GUIalert){
+                showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+            }else {
+                System.out.println("Error, there was a database connection error");
+            }
         } finally {
             SQL_obj.closeResources();
             SQL_obj.close_connection();
@@ -166,11 +193,19 @@ public class user extends fundamental_tools {
                 String preferred_genres = rs.getString("Preferred_Genres");
                 return_string = "Most Recently Read Article: "+read_articles+"\nPreferred Genres: "+preferred_genres+"\n\nTo view your liked articles view your personal details page!";
             } else {
-                showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
+                if (GUIalert){
+                    showAlert("Error", "Invalid username or password.", Alert.AlertType.ERROR);
+                }else{
+                    System.out.println("Error invalid username or password");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+            if (GUIalert){
+                showAlert("Error", "Database connection error.", Alert.AlertType.ERROR);
+            }else{
+                System.out.println("Error there was a database connection error");
+            }
         }
 
         return return_string;
@@ -182,7 +217,11 @@ public class user extends fundamental_tools {
             writer.write("");
             user_details_cleared = true;
         } catch (IOException e) {
-            showAlert("File Error","An error occurred while clearing the file: " + e.getMessage(), Alert.AlertType.INFORMATION);
+            if (GUIalert){
+                showAlert("File Error","An error occurred while clearing the file: " + e.getMessage(), Alert.AlertType.INFORMATION);
+            }else{
+                System.out.println("File error, an error occurred while clearing the file");
+            }
         }
         return user_details_cleared;
     }
@@ -199,5 +238,13 @@ public class user extends fundamental_tools {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public void likesArticle(String description, String userName, Button likeButton) {
+        rate_service.likeArticle(description,userName,likeButton);
+    }
+
+    public void skipsArticle(String userName, JsonObject article, String globalUsername) {
+        rate_service.skipArticle(userName,article,globalUsername);
     }
 }

@@ -1,7 +1,8 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.interfaces;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
 import com.example.ethan_perera_2331419.models.user;
+import com.example.ethan_perera_2331419.scene_switcher_service;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
 import com.example.ethan_perera_2331419.services.store_user_details;
 import javafx.event.ActionEvent;
@@ -24,13 +25,14 @@ public class user_page_controller extends fundamental_tools implements Initializ
     private ScrollPane user_details_content;
     //------Variable Loaders------
     private String global_username = "";
-    private final SQL_Driver SQL_obj = new SQL_Driver();
     //------Object Initializers------
+    private final SQL_Driver SQL_obj = new SQL_Driver();
     private final store_user_details active_user_stored_details = new store_user_details();
-    private user active_user = new user(global_username);
+    private user active_user = new user(global_username,true);
+    private final scene_switcher_service scene_switcher = new scene_switcher_service();
     //------Scene Switchers------
     public void switchToHome_Not_Validated(ActionEvent event) throws IOException{
-        scene_switcher(event, "home_page.fxml");
+        scene_switcher.switch_scene(event, "home_page.fxml");
     }
     //------Controller Functions------
     public void clear_details(){

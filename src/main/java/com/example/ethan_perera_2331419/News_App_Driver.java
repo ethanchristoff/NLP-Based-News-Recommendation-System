@@ -1,14 +1,18 @@
 package com.example.ethan_perera_2331419;
 
+import com.example.ethan_perera_2331419.services.fundamental_tools;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 
 public class News_App_Driver extends Application{
+
+    private fundamental_tools services = new fundamental_tools();
 
     @Override
     public void start(Stage primaryStage) {
@@ -26,6 +30,10 @@ public class News_App_Driver extends Application{
             stage.setTitle("News App");
             stage.setScene(scene);
             stage.setResizable(false);
+            stage.setOnCloseRequest(e->{
+                services.showAlert("Exit Cancelled","You can only use the exit button", Alert.AlertType.ERROR);
+                e.consume();
+            });
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();

@@ -15,4 +15,6 @@ module com.example.ethan_perera_2331419 {
     exports com.example.ethan_perera_2331419;
     exports com.example.ethan_perera_2331419.models;
     opens com.example.ethan_perera_2331419.models to javafx.fxml;
+    exports com.example.ethan_perera_2331419.interfaces;
+    opens com.example.ethan_perera_2331419.interfaces to javafx.fxml;
 }

@@ -18,10 +18,10 @@ public class rate extends fundamental_tools {
         likeButton.setDisable(true);
 
         String fileName = "user_cache/" + userName + "_liked_articles.txt";
-        runInBackground(() -> write_to_text_file(fileName, description));
+        write_to_text_file(fileName, description);
     }
 
-    public void skipArticle(String userName, JsonObject article, int index, boolean forward, String globalUsername) {
+    public void skipArticle(String userName, JsonObject article, String globalUsername) {
         if (userName.equalsIgnoreCase("temp")) {
             showAlert("Temp User", "Ensure that you login to use this feature", Alert.AlertType.ERROR);
             return;

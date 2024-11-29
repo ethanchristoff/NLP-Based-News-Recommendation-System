@@ -1,7 +1,8 @@
-package com.example.ethan_perera_2331419;
+package com.example.ethan_perera_2331419.interfaces;
 
 import com.example.ethan_perera_2331419.db.SQL_Driver;
 import com.example.ethan_perera_2331419.models.user;
+import com.example.ethan_perera_2331419.scene_switcher_service;
 import com.example.ethan_perera_2331419.services.fundamental_tools;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -27,9 +28,10 @@ public class reset_password_controller extends fundamental_tools {
     private PreparedStatement pstmt;
     //------Object Initializers------
     private final SQL_Driver SQL_obj = new SQL_Driver();
+    private final scene_switcher_service scene_switcher = new scene_switcher_service();
     //------Scene Switchers------
     public void switchToSignIn(ActionEvent event) throws IOException {
-        scene_switcher(event, "sign_in.fxml");
+        scene_switcher.switch_scene(event, "sign_in.fxml");
     }
     //------Controller Functions------
     public void resetPassword(ActionEvent event) throws IOException {
@@ -45,7 +47,7 @@ public class reset_password_controller extends fundamental_tools {
         }else if (!password_valiadated) {
             showAlert("Password complexity",password_validated_array[1], Alert.AlertType.ERROR);
         }else {
-            user User = new user(resetUsername,resetPassword);
+            user User = new user(resetUsername,resetPassword,true);
             boolean reset_password = User.reset_user_password(resetRePassword);
             if (reset_password){
                 remove_from_logged_in_users(resetUsername,SQL_obj);
