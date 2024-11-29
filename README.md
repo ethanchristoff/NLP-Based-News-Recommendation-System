@@ -37,6 +37,30 @@ The News Article Recommendation System collects news articles from multiple sour
 - **Concurrency**: Java concurrency utilities to handle multiple requests.
 - **File I/O and Database**: For storing and managing user data and articles.
 
+## Pre-Requisites
+1. Ensure that you have ollama installed and setup, regard the following [link](https://ollama.com/download) to install ollama's local application
+2. Proceed to install the following model through CMD after setting up the application by running the following command: `ollama run llama3.1`, [Model Documentation](https://ollama.com/library/llama3.1)
+3. Thereafer you are required to create the following database through the following SQL queries:
+
+```SQL
+CREATE DATABASE personalized_news_system;
+
+CREATE TABLE users (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    Read_Articles TEXT,
+    Preferred_Genres TEXT
+);
+
+CREATE TABLE logged_in_users (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE
+);
+
+```
+4. Having done so, you should be ready to initiate the application
+
 ## Installation
 
 To get started, clone this repository and follow the setup instructions below.
