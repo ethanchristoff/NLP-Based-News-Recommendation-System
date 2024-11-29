@@ -83,5 +83,3 @@ Ensure you have Java 8 or higher installed. If you wish to use database integrat
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ethanchristoff/NLP-Based-News-Recommendation-System/blob/master/LICENSE) file for details.
 
 ---
-
-For more information, refer to the complete documentation or explore the source code.
