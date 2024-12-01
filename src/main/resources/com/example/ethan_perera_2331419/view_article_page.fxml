@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.web.WebView?>
 
-<AnchorPane prefHeight="400.0" prefWidth="964.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.view_article_controller">
+<AnchorPane prefHeight="400.0" prefWidth="964.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.models.view_articles">
    <children>
       <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="964.0">
          <menus>
@@ -35,6 +35,6 @@
       <WebView fx:id="news_webview" layoutX="569.0" layoutY="54.0" prefHeight="326.0" prefWidth="388.0" />
       <Button layoutX="570.0" layoutY="27.0" mnemonicParsing="false" onAction="#reload_page" text="Reload Page" />
       <ChoiceBox fx:id="filtered_articles_choicebox" layoutX="18.0" layoutY="146.0" prefWidth="150.0" />
-      <Button fx:id="skip_article_btn" layoutX="50.0" layoutY="280.0" mnemonicParsing="false" onAction="#next_article_skipped" text="Skip Article" />
+      <Button fx:id="skip_article_btn" layoutX="50.0" layoutY="280.0" mnemonicParsing="false" onAction="#skip_next_article" text="Skip Article" />
    </children>
 </AnchorPane>

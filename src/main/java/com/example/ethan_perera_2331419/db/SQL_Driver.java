@@ -6,12 +6,13 @@ import javafx.scene.control.Alert;
 import java.sql.*;
 
 public class SQL_Driver extends fundamental_tools {
-    final String dbUrl = "jdbc:mysql://localhost:3306/personalized_news_system";
-    Connection conn;
-    PreparedStatement pstmt;
-    ResultSet rs;
-    String SQL_Query;
-
+    //------Variable Initializers------
+    private final String dbUrl = "jdbc:mysql://localhost:3306/personalized_news_system";
+    private Connection conn;
+    private PreparedStatement pstmt;
+    private ResultSet rs;
+    private String SQL_Query;
+    //------SQL Functions------
     public SQL_Driver() {
         open_connection();// When instantiated, a connection is established
     }

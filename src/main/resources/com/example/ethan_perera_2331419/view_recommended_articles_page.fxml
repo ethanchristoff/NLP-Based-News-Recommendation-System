@@ -8,11 +8,10 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.web.WebView?>
 
-<AnchorPane prefHeight="400.0" prefWidth="964.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.recommended_article_viewer_controller">
+<AnchorPane prefHeight="400.0" prefWidth="586.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.ethan_perera_2331419.models.view_articles">
    <children>
-      <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="964.0">
+      <MenuBar layoutY="1.0" prefHeight="26.0" prefWidth="586.0">
          <menus>
             <Menu mnemonicParsing="false" text="Exit">
                <items>
@@ -29,7 +28,5 @@
       <ScrollPane fx:id="recommended_article_content" layoutX="191.0" layoutY="159.0" prefHeight="171.0" prefWidth="366.0" />
       <Label fx:id="recommended_article_release_date" alignment="TOP_LEFT" layoutX="21.0" layoutY="281.0" prefHeight="84.0" prefWidth="134.0" text="release_date" wrapText="true" />
       <Button layoutX="39.0" layoutY="212.0" mnemonicParsing="false" onAction="#recommended_previous_article" text="Previous Article" />
-      <WebView fx:id="recommended_news_webview" layoutX="569.0" layoutY="54.0" prefHeight="326.0" prefWidth="388.0" />
-      <Button layoutX="570.0" layoutY="27.0" mnemonicParsing="false" onAction="#reload_page" text="Reload Page" />
    </children>
 </AnchorPane>

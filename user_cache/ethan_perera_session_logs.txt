@@ -1,2 +1,0 @@
-username=ethan_perera
-password=123*

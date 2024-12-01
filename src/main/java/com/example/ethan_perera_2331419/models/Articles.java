@@ -1,4 +1,4 @@
-package com.example.ethan_perera_2331419.services;
+package com.example.ethan_perera_2331419.models;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -7,12 +7,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
-public class JSON_Reader {
-
+public class Articles {
+    //------Variable Initialization------
     private static final String FILE_PATH = "src/main/java/com/example/ethan_perera_2331419/Articles/News_Category_Dataset_v3.json";
 
+    //------Articles Functions------
     public static JsonArray readJsonFile() {
         JsonArray jsonArray = new JsonArray();
 
@@ -40,12 +42,19 @@ public class JSON_Reader {
         return categorySet.toArray(new String[0]);
     }
 
-    // For debugging
-    public static void main(String[] args){
-        String[] arr = get_categories();
-        for (int i = 0; i<arr.length; i++){
-            System.out.println(arr[i]);
+    public JsonArray getPreferredArticles(JsonArray articles, String[] preferredGenres) {
+        JsonArray preferredArticles = new JsonArray();
+
+        for (int i = 0; i < articles.size(); i++) {
+            JsonObject article = articles.get(i).getAsJsonObject();
+            for (String genre : preferredGenres) {
+                if (article.get("category").getAsString().equalsIgnoreCase(genre)) {
+                    preferredArticles.add(article);
+                }
+            }
         }
-        System.out.println("Number of unique articles: "+arr.length);
+
+        return preferredArticles;
     }
+
 }

@@ -1,14 +1,14 @@
 package com.example.ethan_perera_2331419.services;
 
-public class store_details {
-    private static store_details instance;
+public class store_user_details {
+    private static store_user_details instance;
     private String globalDetail = "Null";
 
-    public store_details() {}
+    public store_user_details() {}
 
-    public static store_details getInstance() {
+    public static store_user_details getInstance() {
         if (instance == null) {
-            instance = new store_details();
+            instance = new store_user_details();
         }
         return instance;
     }
