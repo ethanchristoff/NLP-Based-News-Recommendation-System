@@ -10,10 +10,12 @@ import com.example.ethan_perera_2331419.services.store_user_details;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.concurrent.Task;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -70,7 +72,9 @@ public class home_page_controller extends fundamental_tools implements Initializ
         scene_switcher.switch_scene(event, "view_article_page.fxml");
     }
 
+    @FXML
     public void switchToReommendedArticleViewer(ActionEvent event) {
+        Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         if (is_temp_user) {
             showAlert("Temp User", "Ensure that you login to use this feature", Alert.AlertType.ERROR);
             recommended_articles_btn.setDisable(true);
@@ -98,7 +102,7 @@ public class home_page_controller extends fundamental_tools implements Initializ
             ollamaTask.setOnSucceeded(event1 -> {
                 try {
                     showAlert("Preferred Genre", "Your preferred Genre is: '" + summarized_genre + "'", Alert.AlertType.INFORMATION);
-                    scene_switcher.switch_scene(event, "view_recommended_articles_page.fxml");
+                    scene_switcher.switch_scene(currentStage, "view_recommended_articles_page.fxml");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -110,9 +114,6 @@ public class home_page_controller extends fundamental_tools implements Initializ
 
             ollamaTask.setOnRunning(event1 -> {
                 recommended_articles_btn.setDisable(true);
-                personal_details_btn.setDisable(true);
-                article_viewer_btn.setDisable(true);
-                previous_page_btn.setDisable(true);
             });
 
             new Thread(ollamaTask).start();

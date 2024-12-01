@@ -28,4 +28,22 @@ public class scene_switcher_service extends fundamental_tools {
         stage.setScene(scene);
         stage.show();
     }
+    /*
+    The scene switcher here has the stage it was initialized on passed into it such that if the user switches stages
+    then the initial stage it was started on is still cached and made such that its initial functions are made available
+    here
+     */
+    public void switch_scene(Stage stage, String page_name) throws IOException {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(page_name)));
+
+        if (root == null) {
+            showAlert("Error", page_name + " not found!", Alert.AlertType.ERROR);
+            return;
+        }
+
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
+
 }

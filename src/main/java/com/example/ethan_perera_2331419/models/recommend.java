@@ -7,8 +7,12 @@ import javafx.scene.control.Alert;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class recommend extends fundamental_tools {
+    //------Variable Initializers------
+    private List<Runnable> tasks = new ArrayList<>();
     //------SQL Based Variables------
     private ResultSet rs;
     private String sql;
@@ -21,9 +25,21 @@ public class recommend extends fundamental_tools {
         SQL_obj.set_query(sql);
         PreparedStatement pstmt = SQL_obj.getPreparedStatement();
         try {
-            pstmt.setString(1, preferred_genre);
-            pstmt.setString(2, username);
-
+            tasks.add(()-> {
+                try {
+                    pstmt.setString(1, preferred_genre);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            tasks.add(()-> {
+                try {
+                    pstmt.setString(2, username);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            run_simultaneously(tasks);
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
