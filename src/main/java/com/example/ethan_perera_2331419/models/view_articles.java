@@ -181,8 +181,8 @@ public class view_articles extends fundamental_tools implements Initializable {
             Clipboard clipboard = Clipboard.getSystemClipboard();
             clipboard.setContent(new ClipboardContent() {{ putString(url); }});
             showAlert("Information", "Link copied!", Alert.AlertType.INFORMATION);
-
-            add_to_read(url);
+            if (!global_username.equals("temp"))
+                add_to_read(url);
         });
     }
 
@@ -287,9 +287,10 @@ public class view_articles extends fundamental_tools implements Initializable {
             summarized_genre = recommend_articles.get_preferred_genre(global_username);
             preferred_genre = recommend_articles.getPreferredGenreArray(summarized_genre.toLowerCase());
             recommended_articles = news_obj.getPreferredArticles(news_obj.readJsonFile(), preferred_genre);
-        }else
+        }else {
+            Arrays.sort(categories_array);
             filtered_articles_choicebox.getItems().addAll(categories_array);
-        if (news_webview != null) {
+        }if (news_webview != null) {
             web_instance.initialize_engine(news_webview);
         } else {
             System.err.println("WebView is not yet initialized! Check your FXML.");

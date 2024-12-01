@@ -52,6 +52,11 @@ public class sign_in_controller extends fundamental_tools implements Initializab
         String inputUsername = username_input.getText();
         String inputPassword = password_input.getText();
 
+        if (!Objects.equals(current_user.getInstance().getGlobalDetails(), "Null")){
+            remove_from_logged_in_users(global_username,SQL_obj);
+            clearSessionCredentials(global_username);
+        }
+
         current_user.getInstance().setGlobalDetails(inputUsername);
 
         user new_user = new user(inputUsername, inputPassword,true);
