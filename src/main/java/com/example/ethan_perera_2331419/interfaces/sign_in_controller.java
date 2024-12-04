@@ -73,6 +73,7 @@ public class sign_in_controller extends fundamental_tools implements Initializab
             }
         }
     }
+
     public void switchToHome_Logged_In(ActionEvent event) throws IOException{
         scene_switcher.switch_scene(event, "home_page.fxml");
     }
