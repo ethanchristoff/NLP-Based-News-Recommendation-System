@@ -170,7 +170,7 @@ public class view_articles extends fundamental_tools implements Initializable {
 
         String url = article.get("link").getAsString();
         setupArticleLinkAction(url);
-        web_instance.load_page(url); // Loads the article page
+        web_instance.load_page(url);
 
         setupLikeButtonAction(article.get("short_description").getAsString(),like_btn,global_username);
     }
@@ -194,7 +194,7 @@ public class view_articles extends fundamental_tools implements Initializable {
         web_instance.reload_page();
     }
 
-    // ------Recommended Article Switcher------
+    //------Recommended Article Switcher------
     public void recommended_next_article() {
         if (!recommended_articles.isEmpty()) {
             count = (count + 1) % recommended_articles.size();
@@ -286,7 +286,7 @@ public class view_articles extends fundamental_tools implements Initializable {
             System.err.println("ChoiceBox not yet initialized");
             summarized_genre = recommend_articles.get_preferred_genre(global_username);
             preferred_genre = recommend_articles.getPreferredGenreArray(summarized_genre.toLowerCase());
-            recommended_articles = news_obj.getPreferredArticles(news_obj.readJsonFile(), preferred_genre);
+            recommended_articles = news_obj.getPreferredArticles(articles, preferred_genre);
         }else {
             Arrays.sort(categories_array);
             filtered_articles_choicebox.getItems().addAll(categories_array);

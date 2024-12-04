@@ -88,7 +88,6 @@ public class user extends fundamental_tools {
         SQL_obj.open_connection();
 
         try {
-            // Check if the username already exists
             String sql = "SELECT COUNT(*) FROM users WHERE username = ?;";
             SQL_obj.set_query(sql);
             PreparedStatement selectPstmt = SQL_obj.getPreparedStatement();

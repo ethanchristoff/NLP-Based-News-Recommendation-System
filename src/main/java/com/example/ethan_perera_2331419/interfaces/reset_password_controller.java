@@ -23,9 +23,6 @@ public class reset_password_controller extends fundamental_tools {
     private TextField reset_password_input;
     @FXML
     private TextField reset_re_password_input;
-    //------SQL Based Variables------
-    private ResultSet rs;
-    private PreparedStatement pstmt;
     //------Object Initializers------
     private final SQL_Driver SQL_obj = new SQL_Driver();
     private final scene_switcher_service scene_switcher = new scene_switcher_service();
