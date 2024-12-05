@@ -28,7 +28,7 @@ public class user_page_controller extends fundamental_tools implements Initializ
     //------Object Initializers------
     private final SQL_Driver SQL_obj = new SQL_Driver();
     private final store_user_details active_user_stored_details = new store_user_details();
-    private user active_user = new user(global_username,true);
+    private final user active_user = new user(global_username,true);
     private final scene_switcher_service scene_switcher = new scene_switcher_service();
     //------Scene Switchers------
     public void switchToHome_Not_Validated(ActionEvent event) throws IOException{
