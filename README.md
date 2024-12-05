@@ -45,6 +45,8 @@ The News Article Recommendation System collects news articles from multiple sour
 ```SQL
 CREATE DATABASE personalized_news_system;
 
+-- Execute the following queries within the database after creating it
+
 CREATE TABLE users (
     id INT(11) AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
