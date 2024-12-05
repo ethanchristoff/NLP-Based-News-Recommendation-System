@@ -38,9 +38,10 @@ The News Article Recommendation System collects news articles from multiple sour
 - **File I/O and Database**: For storing and managing user data and articles.
 
 ## Pre-Requisites
-1. Ensure that you have ollama installed and setup, regard the following [link](https://ollama.com/download) to install ollama's local application
-2. Proceed to install the following model through CMD after setting up the application by running the following command: `ollama run llama3.1`, [Model Documentation](https://ollama.com/library/llama3.1)
-3. Thereafer you are required to create the following database through the following SQL queries:
+1. [Download the dataset](https://www.kaggle.com/datasets/rmisra/news-category-dataset), in case the application's dataset does not render properly 
+2. Ensure that you have ollama installed and setup, regard the following [link](https://ollama.com/download) to install ollama's local application
+3. Proceed to install the following model through CMD after setting up the application by running the following command: `ollama run llama3.1`, [Model Documentation](https://ollama.com/library/llama3.1)
+4. Thereafer you are required to create the following database through the following SQL queries:
 
 ```SQL
 CREATE DATABASE personalized_news_system;
